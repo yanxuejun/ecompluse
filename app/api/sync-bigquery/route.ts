@@ -6,47 +6,61 @@ export async function GET(req: NextRequest) {
 
   // 查询参数
   const country = searchParams.get('country');
-  const title = searchParams.get('title'); // 产品标题模糊
+  const title = searchParams.get('title');
   const start = searchParams.get('start');
   const end = searchParams.get('end');
-  const category = searchParams.get('category'); // 目录id
+  const category = searchParams.get('category');
   const brand = searchParams.get('brand');
-  const brandIsNull = searchParams.get('brandIsNull'); // 新增
-  const limit = Number(searchParams.get('limit') || 50);
+  const brandIsNull = searchParams.get('brandIsNull');
   const minRank = searchParams.get('minRank');
   const maxRank = searchParams.get('maxRank');
   const minPrice = searchParams.get('minPrice');
   const maxPrice = searchParams.get('maxPrice');
+  const page = Number(searchParams.get('page') || 1);
+  const pageSize = Number(searchParams.get('pageSize') || 10);
 
-  // 构建SQL
-  let sql = `SELECT 
-    rank_id, 
-    rank, 
-    ranking_country, 
-    ranking_category, 
-    brand, 
-    product_title, 
-    previous_rank, 
-    price_range, 
-    relative_demand, 
-    previous_relative_demand, 
-    rank_timestamp
+  // 构建WHERE条件
+  let where = 'WHERE 1=1';
+  if (country) where += ` AND ranking_country = @country`;
+  if (title) where += ` AND EXISTS (SELECT 1 FROM UNNEST(product_title) AS t WHERE t.name LIKE @title)`;
+  if (category) where += ` AND ranking_category = @category`;
+  if (brand) where += ` AND brand = @brand`;
+  if (brandIsNull === 'true') where += ` AND (brand IS NULL OR brand = '')`;
+  if (start) where += ` AND rank_timestamp >= @start`;
+  if (end) where += ` AND rank_timestamp <= @end`;
+  if (minRank) where += ` AND rank >= @minRank`;
+  if (maxRank) where += ` AND rank <= @maxRank`;
+  if (minPrice) where += ` AND price_range.min >= @minPrice`;
+  if (maxPrice) where += ` AND price_range.max <= @maxPrice`;
+
+  // 查询总数
+  const countSql = `
+    SELECT COUNT(*) as total
     FROM \`new_gmc_data.BestSellers_TopProducts_479974220\`
-    WHERE 1=1`;
-  if (country) sql += ` AND ranking_country = @country`;
-  if (title) sql += ` AND EXISTS (SELECT 1 FROM UNNEST(product_title) AS t WHERE t.name LIKE @title)`;
-  if (category) sql += ` AND ranking_category = @category`;
-  if (brand) sql += ` AND brand = @brand`;
-  if (brandIsNull === 'true') sql += ` AND (brand IS NULL OR brand = '')`;
-  if (start) sql += ` AND rank_timestamp >= @start`;
-  if (end) sql += ` AND rank_timestamp <= @end`;
-  if (minRank) sql += ` AND rank >= @minRank`;
-  if (maxRank) sql += ` AND rank <= @maxRank`;
-  if (minPrice) sql += ` AND price_range.min >= @minPrice`;
-  if (maxPrice) sql += ` AND price_range.max <= @maxPrice`;
-  sql += ` ORDER BY rank ASC LIMIT @limit`;
+    ${where}
+  `;
 
-  // 参数化，所有参数都要有类型
+  // 查询当前页数据
+  const dataSql = `
+    SELECT 
+      rank_id, 
+      rank, 
+      ranking_country, 
+      ranking_category, 
+      brand, 
+      product_title, 
+      previous_rank, 
+      price_range, 
+      relative_demand, 
+      previous_relative_demand, 
+      rank_timestamp
+    FROM \`new_gmc_data.BestSellers_TopProducts_479974220\`
+    ${where}
+    ORDER BY rank ASC
+    LIMIT @pageSize OFFSET @offset
+  `;
+
+  // 参数
   const params: any = {
     country: country || null,
     title: title ? `%${title}%` : null,
@@ -55,11 +69,12 @@ export async function GET(req: NextRequest) {
     brandIsNull: brandIsNull === 'true',
     start: start || null,
     end: end || null,
-    limit,
     minRank: minRank ? Number(minRank) : null,
     maxRank: maxRank ? Number(maxRank) : null,
     minPrice: minPrice ? Number(minPrice) : null,
     maxPrice: maxPrice ? Number(maxPrice) : null,
+    pageSize,
+    offset: (page - 1) * pageSize,
   };
 
   const types: any = {
@@ -70,23 +85,34 @@ export async function GET(req: NextRequest) {
     brandIsNull: 'BOOL',
     start: 'TIMESTAMP',
     end: 'TIMESTAMP',
-    limit: 'INT64',
     minRank: 'INT64',
     maxRank: 'INT64',
     minPrice: 'NUMERIC',
     maxPrice: 'NUMERIC',
+    pageSize: 'INT64',
+    offset: 'INT64',
   };
 
   // 连接BigQuery
   const credentials = JSON.parse(process.env.GCP_SERVICE_ACCOUNT_JSON!);
   const bigquery = new BigQuery({ projectId: credentials.project_id, credentials });
 
-  const [rows] = await bigquery.query({
-    query: sql,
+  // 查询总数
+  const [countRows] = await bigquery.query({
+    query: countSql,
+    params,
+    types,
+    location: 'US',
+  });
+  const total = countRows[0]?.total || 0;
+
+  // 查询当前页数据
+  const [dataRows] = await bigquery.query({
+    query: dataSql,
     params,
     types,
     location: 'US',
   });
 
-  return NextResponse.json(rows);
+  return NextResponse.json({ data: dataRows, total });
 }

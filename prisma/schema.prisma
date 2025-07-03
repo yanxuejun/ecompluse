@@ -20,3 +20,11 @@ model TrendProduct {
   category       String
   relativeDemand Int
 }
+
+model Google_Product_Taxonomy {
+  code                Int    @id
+  catalog_name        String
+  catalog_depth       Int
+  parent_catalog_code Int
+  full_catalog_name   String
+}
