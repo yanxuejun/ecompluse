@@ -17,8 +17,19 @@ export default function ProductsPage() {
   const [maxRank, setMaxRank] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
 
-  const handleSearch = async () => {
+  // 记录上一次的筛选条件
+  const [lastFilter, setLastFilter] = useState({ country: '', title: '', category: '', brand: '', start: '', end: '', brandIsNull: false, minRank: '', maxRank: '', minPrice: '', maxPrice: '' });
+
+  // 判断筛选条件是否变化
+  const filterChanged = () => {
+    return country !== lastFilter.country || title !== lastFilter.title || category !== lastFilter.category || brand !== lastFilter.brand || start !== lastFilter.start || end !== lastFilter.end || brandIsNull !== lastFilter.brandIsNull || minRank !== lastFilter.minRank || maxRank !== lastFilter.maxRank || minPrice !== lastFilter.minPrice || maxPrice !== lastFilter.maxPrice;
+  };
+
+  const handleSearch = async (page = 1, size = pageSize) => {
     setLoading(true);
     const params = new URLSearchParams();
     if (country) params.append('country', country);
@@ -32,17 +43,39 @@ export default function ProductsPage() {
     if (maxRank) params.append('maxRank', maxRank);
     if (minPrice) params.append('minPrice', minPrice);
     if (maxPrice) params.append('maxPrice', maxPrice);
+    params.append('page', String(page));
+    params.append('pageSize', String(size));
+
+    console.log('fetch params:', params.toString());
 
     const res = await fetch(`/api/sync-bigquery?${params.toString()}`);
     const json = await res.json();
-    setData(json);
+    setData(json.data);
+    setTotal(json.total || 0);
+    setCurrentPage(page);
+    setPageSize(size);
     setLoading(false);
+    // 记录本次筛选条件
+    setLastFilter({ country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice });
   };
+
+  // 筛选条件变化时自动重置到第一页
+  React.useEffect(() => {
+    if (filterChanged()) {
+      handleSearch(1, pageSize);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice]);
+
+  // 页面加载时自动查询第一页
+  React.useEffect(() => {
+    handleSearch(1, pageSize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 解析嵌套字段
   const getTitle = (product_title: any) => {
     if (!product_title || !Array.isArray(product_title)) return '';
-    // 取第一个中文或英文标题
     const zh = product_title.find((t: any) => t.locale === 'zh-CN');
     const en = product_title.find((t: any) => t.locale === 'en');
     return (zh?.name || en?.name || product_title[0]?.name || '');
@@ -57,6 +90,8 @@ export default function ProductsPage() {
     if (!relative_demand) return '';
     return `${relative_demand.min ?? ''} ~ ${relative_demand.max ?? ''} (${relative_demand.bucket ?? ''})`;
   };
+
+  const totalPages = Math.ceil(total / pageSize) || 1;
 
   return (
     <div className="p-8">
@@ -81,7 +116,7 @@ export default function ProductsPage() {
           只看无品牌
         </label>
         <button
-          onClick={handleSearch}
+          onClick={() => handleSearch(1, pageSize)}
           className="text-white font-bold px-8 py-3 text-lg rounded transition"
           style={{ backgroundColor: 'var(--color-accent)', border: 'none' }}
           onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'var(--color-cta)')}
@@ -89,6 +124,19 @@ export default function ProductsPage() {
         >
           查询
         </button>
+        <select
+          className="border px-2 py-1"
+          value={pageSize}
+          onChange={e => {
+            const newSize = Number(e.target.value);
+            setPageSize(newSize);
+            handleSearch(1, newSize); // 切换每页条数时重置到第一页
+          }}
+        >
+          {[10, 20, 50, 100].map(size => (
+            <option key={size} value={size}>{size} 条/页</option>
+          ))}
+        </select>
       </div>
       {loading && (
         <div className="flex justify-center items-center my-8">
@@ -113,7 +161,7 @@ export default function ProductsPage() {
             </tr>
           </thead>
           <tbody>
-            {data.map((item, idx) => (
+            {(data || []).map((item, idx) => (
               <tr key={item.rank_id || idx} className="bg-background rounded-lg shadow border-b border-gray-100">
                 <td className="px-3 py-2 font-bold text-primary">{item.rank}</td>
                 <td className="px-3 py-2">{item.ranking_country}</td>
@@ -144,6 +192,26 @@ export default function ProductsPage() {
             ))}
           </tbody>
         </table>
+        {/* 分页按钮 */}
+        <div className="flex gap-2 mt-4 items-center">
+          <button
+            className="px-3 py-1 border rounded"
+            disabled={currentPage === 1}
+            onClick={() => handleSearch(currentPage - 1, pageSize)}
+          >
+            上一页
+          </button>
+          <span>
+            第 {currentPage} / {totalPages} 页（共 {total} 条）
+          </span>
+          <button
+            className="px-3 py-1 border rounded"
+            disabled={currentPage >= totalPages}
+            onClick={() => handleSearch(currentPage + 1, pageSize)}
+          >
+            下一页
+          </button>
+        </div>
       </div>
     </div>
   );
