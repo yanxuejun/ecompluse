@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { countryGoogleShoppingMap } from "@/lib/country-google-shopping";
 
 export default function ProductsPage() {
   const [country, setCountry] = useState('');
@@ -12,6 +13,10 @@ export default function ProductsPage() {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [brandIsNull, setBrandIsNull] = useState(false);
+  const [minRank, setMinRank] = useState('');
+  const [maxRank, setMaxRank] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
 
   const handleSearch = async () => {
     setLoading(true);
@@ -23,6 +28,10 @@ export default function ProductsPage() {
     if (start) params.append('start', start);
     if (end) params.append('end', end);
     if (brandIsNull) params.append('brandIsNull', 'true');
+    if (minRank) params.append('minRank', minRank);
+    if (maxRank) params.append('maxRank', maxRank);
+    if (minPrice) params.append('minPrice', minPrice);
+    if (maxPrice) params.append('maxPrice', maxPrice);
 
     const res = await fetch(`/api/sync-bigquery?${params.toString()}`);
     const json = await res.json();
@@ -59,6 +68,10 @@ export default function ProductsPage() {
         <input placeholder="品牌" value={brand} onChange={e => setBrand(e.target.value)} className="border px-2 py-1" />
         <input type="date" value={start} onChange={e => setStart(e.target.value)} className="border px-2 py-1" />
         <input type="date" value={end} onChange={e => setEnd(e.target.value)} className="border px-2 py-1" />
+        <input placeholder="最小排名" type="number" value={minRank} onChange={e => setMinRank(e.target.value)} className="border px-2 py-1 w-24" />
+        <input placeholder="最大排名" type="number" value={maxRank} onChange={e => setMaxRank(e.target.value)} className="border px-2 py-1 w-24" />
+        <input placeholder="最低价格" type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="border px-2 py-1 w-24" />
+        <input placeholder="最高价格" type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="border px-2 py-1 w-24" />
         <label className="flex items-center gap-1">
           <input
             type="checkbox"
@@ -77,7 +90,12 @@ export default function ProductsPage() {
           查询
         </button>
       </div>
-      {loading && <div>加载中...</div>}
+      {loading && (
+        <div className="flex justify-center items-center my-8">
+          <span className="animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-accent mr-4"></span>
+          <span className="text-accent text-lg font-bold">加载中...</span>
+        </div>
+      )}
       <div className="bg-white rounded-lg shadow p-6">
         <table className="w-full border-separate border-spacing-y-2">
           <thead>
@@ -101,7 +119,22 @@ export default function ProductsPage() {
                 <td className="px-3 py-2">{item.ranking_country}</td>
                 <td className="px-3 py-2">{item.ranking_category}</td>
                 <td className="px-3 py-2">{item.brand}</td>
-                <td className="px-3 py-2">{getTitle(item.product_title)}</td>
+                <td className="px-3 py-2">
+                  {(() => {
+                    const country = item.ranking_country;
+                    const { gl, hl } = countryGoogleShoppingMap[country] || { gl: 'us', hl: 'en' };
+                    return (
+                      <a
+                        href={`https://www.google.com/search?tbm=shop&q=${encodeURIComponent(getTitle(item.product_title))}&gl=${gl}&hl=${hl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        {getTitle(item.product_title)}
+                      </a>
+                    );
+                  })()}
+                </td>
                 <td className="px-3 py-2">{item.previous_rank}</td>
                 <td className="px-3 py-2">{getPriceRange(item.price_range)}</td>
                 <td className="px-3 py-2">{getDemand(item.relative_demand)}</td>

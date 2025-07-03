@@ -11,6 +11,10 @@ export async function GET(req: NextRequest) {
   const start = searchParams.get('start');
   const end = searchParams.get('end');
   const limit = Number(searchParams.get('limit') || 50);
+  const minRank = searchParams.get('minRank');
+  const maxRank = searchParams.get('maxRank');
+  const minPrice = searchParams.get('minPrice');
+  const maxPrice = searchParams.get('maxPrice');
 
   // 构建SQL
   let sql = `SELECT rank_id, rank, ranking_country, ranking_category, brand, rank_timestamp
@@ -20,6 +24,10 @@ export async function GET(req: NextRequest) {
   if (brand) sql += ` AND brand = @brand`;
   if (start) sql += ` AND rank_timestamp >= @start`;
   if (end) sql += ` AND rank_timestamp <= @end`;
+  if (minRank) sql += ` AND rank >= @minRank`;
+  if (maxRank) sql += ` AND rank <= @maxRank`;
+  if (minPrice) sql += ` AND price_range.min >= @minPrice`;
+  if (maxPrice) sql += ` AND price_range.max <= @maxPrice`;
   sql += ` ORDER BY rank_timestamp DESC LIMIT @limit`;
 
   // 参数化，所有参数都要有类型
@@ -29,7 +37,11 @@ export async function GET(req: NextRequest) {
     brand: brand || null,
     start: start || null,
     end: end || null,
-    limit
+    limit,
+    minRank: minRank ? Number(minRank) : null,
+    maxRank: maxRank ? Number(maxRank) : null,
+    minPrice: minPrice ? Number(minPrice) : null,
+    maxPrice: maxPrice ? Number(maxPrice) : null,
   };
 
   const types: any = {
@@ -38,7 +50,11 @@ export async function GET(req: NextRequest) {
     brand: 'STRING',
     start: 'TIMESTAMP',
     end: 'TIMESTAMP',
-    limit: 'INT64'
+    limit: 'INT64',
+    minRank: 'INT64',
+    maxRank: 'INT64',
+    minPrice: 'NUMERIC',
+    maxPrice: 'NUMERIC',
   };
 
   // 连接BigQuery
