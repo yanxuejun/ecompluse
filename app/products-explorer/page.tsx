@@ -3,9 +3,23 @@
 import React, { useEffect, useState } from 'react';
 import { countryGoogleShoppingMap } from "@/lib/country-google-shopping";
 
-function TaxonomyTree({ onSelect, selectedCode }) {
-  const [tree, setTree] = useState([]);
-  const [expanded, setExpanded] = useState({});
+interface TaxonomyNode {
+  code: number;
+  catalog_name: string;
+  catalog_depth: number;
+  parent_catalog_code: number;
+  full_catalog_name: string;
+  children: TaxonomyNode[];
+}
+
+interface TaxonomyTreeProps {
+  onSelect: (code: number) => void;
+  selectedCode: number | null;
+}
+
+function TaxonomyTree({ onSelect, selectedCode }: TaxonomyTreeProps) {
+  const [tree, setTree] = useState<TaxonomyNode[]>([]);
+  const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     fetch('/api/taxonomy-tree')
@@ -13,9 +27,9 @@ function TaxonomyTree({ onSelect, selectedCode }) {
       .then(setTree);
   }, []);
 
-  const renderTree = nodes => (
+  const renderTree = (nodes: TaxonomyNode[]): React.ReactNode => (
     <ul className="pl-4">
-      {nodes.map(node => (
+      {nodes.map((node) => (
         <li key={node.code}>
           <div
             className={`cursor-pointer py-1 px-2 rounded hover:bg-accent ${selectedCode === node.code ? 'bg-accent text-accent-foreground font-bold' : ''}`}
@@ -48,7 +62,17 @@ function TaxonomyTree({ onSelect, selectedCode }) {
   );
 }
 
-function QueryFilters({ filters, onChange }) {
+interface QueryFiltersProps {
+  filters: {
+    country: string;
+    minPrice: string;
+    maxPrice: string;
+    brandIsNull: string;
+  };
+  onChange: (f: any) => void;
+}
+
+function QueryFilters({ filters, onChange }: QueryFiltersProps) {
   return (
     <div className="bg-white rounded shadow p-4 flex flex-wrap gap-4 items-end">
       <div>
@@ -96,8 +120,18 @@ function QueryFilters({ filters, onChange }) {
   );
 }
 
-function ProductTable({ category, filters }) {
-  const [data, setData] = useState([]);
+interface ProductTableProps {
+  category: number | null;
+  filters: {
+    country: string;
+    minPrice: string;
+    maxPrice: string;
+    brandIsNull: string;
+  };
+}
+
+function ProductTable({ category, filters }: ProductTableProps) {
+  const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -127,13 +161,11 @@ function ProductTable({ category, filters }) {
       .finally(() => setLoading(false));
   }, [category, filters, currentPage, pageSize]);
 
-  // 查询条件或目录变化时重置到第一页
   useEffect(() => {
     setCurrentPage(1);
   }, [category, filters]);
 
-  // 获取 Google Shopping 搜索链接
-  const getShoppingUrl = (title, country) => {
+  const getShoppingUrl = (title: string, country: string) => {
     if (!title) return '#';
     let gl = 'us', hl = 'en';
     if (country) {
@@ -171,8 +203,8 @@ function ProductTable({ category, filters }) {
             {data.map((item, idx) => {
               let title = '';
               if (item.product_title && Array.isArray(item.product_title)) {
-                const zh = item.product_title.find(t => t.locale === 'zh-CN');
-                const en = item.product_title.find(t => t.locale === 'en');
+                const zh = item.product_title.find((t: any) => t.locale === 'zh-CN');
+                const en = item.product_title.find((t: any) => t.locale === 'en');
                 title = zh?.name || en?.name || item.product_title[0]?.name || '';
               }
               return (
@@ -234,8 +266,8 @@ function ProductTable({ category, filters }) {
 }
 
 export default function ProductsExplorerPage() {
-  const [selectedCode, setSelectedCode] = useState(null);
-  const [filters, setFilters] = useState({ country: '', minPrice: '', maxPrice: '', brandIsNull: '' });
+  const [selectedCode, setSelectedCode] = useState<number | null>(null);
+  const [filters, setFilters] = useState<{ country: string; minPrice: string; maxPrice: string; brandIsNull: string }>({ country: '', minPrice: '', maxPrice: '', brandIsNull: '' });
 
   return (
     <div className="flex flex-col md:flex-row gap-6 p-6 min-h-screen bg-gray-50">
