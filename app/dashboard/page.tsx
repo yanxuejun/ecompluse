@@ -14,6 +14,15 @@ export default async function DashboardPage() {
         <h1 className="text-3xl font-bold mb-8" style={{fontFamily: 'var(--font-family-heading)'}}>
           仪表板
         </h1>
+        {/* 显著产品相关页面链接 */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <a href="/products" className="flex-1 text-center bg-white text-accent text-lg font-bold py-4 rounded-lg shadow underline hover:bg-accent/10 hover:underline hover:shadow-lg transition flex items-center justify-center gap-2">
+            全数据量查询 <span className="inline-block">→</span>
+          </a>
+          <a href="/products-explorer" className="flex-1 text-center bg-white text-accent text-lg font-bold py-4 rounded-lg shadow underline hover:bg-accent/10 hover:underline hover:shadow-lg transition flex items-center justify-center gap-2">
+            分类目热点产品 <span className="inline-block">→</span>
+          </a>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* 数据概览卡片 */}
@@ -79,12 +88,6 @@ export default async function DashboardPage() {
               </tbody>
             </table>
           </div>
-        </div>
-        
-        {/* 新增：产品相关页面链接 */}
-        <div className="mt-8 space-x-4">
-          <a href="/products" className="text-blue-600 underline">全数据量查询</a>
-          <a href="/products-explorer" className="text-blue-600 underline">分类目热点产品</a>
         </div>
       </div>
     </div>

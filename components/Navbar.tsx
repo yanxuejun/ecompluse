@@ -22,7 +22,7 @@ export default function Navbar() {
         color: 'white' 
       }}
     >
-      <div className="flex items-center gap-8">
+      <div className="flex items-center gap-4 md:gap-8 flex-wrap">
         <span className="text-2xl font-bold tracking-tight" style={{fontFamily: 'var(--font-family-heading)'}}>{t.navbar.logo}</span>
         <a href="#" className="hover:underline">{t.navbar.trends}</a>
         <a href="#" className="hover:underline">{t.navbar.rankings}</a>
