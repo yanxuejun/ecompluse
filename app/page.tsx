@@ -1,5 +1,6 @@
 import Navbar from '@/components/Navbar';
 import Hero from '@/components/Hero';
+import DataStats from '@/components/DataStats';
 import SocialProof from '@/components/SocialProof';
 import Features from '@/components/Features';
 import TrendPreview from '@/components/TrendPreview';
@@ -11,6 +12,7 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
+        <DataStats />
         <SocialProof />
         <Features />
         <TrendPreview />

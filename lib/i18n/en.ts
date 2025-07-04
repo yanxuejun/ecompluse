@@ -1,12 +1,13 @@
 export const en = {
   // Navigation
   navbar: {
-    logo: "Ecompluse",
+    logo: "Ecompulse",
     trends: "Trend Reports",
     rankings: "Rankings",
     pricing: "Pricing",
     login: "Login",
-    register: "Free Register"
+    register: "Free Register",
+    dashboard: "Dashboard"
   },
 
   // Homepage Hero Section
@@ -15,6 +16,30 @@ export const en = {
     subtitle: "Based on Google's official product data, gain market insights and seize sales opportunities.",
     primaryCTA: "Explore Hot Trends Free →",
     secondaryCTA: "How It Works"
+  },
+
+  // Data Statistics Section
+  dataStats: {
+    countries: {
+      title: "Countries Covered",
+      description: "Global Market Coverage",
+      value: "36"
+    },
+    categories: {
+      title: "Product Categories",
+      description: "Rich Product Classification",
+      value: "4K+"
+    },
+    products: {
+      title: "Product Data",
+      description: "Massive Product Information",
+      value: "Billion+"
+    },
+    brands: {
+      title: "Famous Brands",
+      description: "Comprehensive Brand Coverage",
+      value: "80K+"
+    }
   },
 
   // Social Proof Section
@@ -65,6 +90,43 @@ export const en = {
     note: "Data updated weekly. Upgrade to Pro to unlock all data."
   },
 
+  // Products Explorer Page
+  productsExplorer: {
+    title: "Product Explorer",
+    taxonomy: {
+      title: "Categories"
+    },
+    filters: {
+      country: "Country",
+      countryPlaceholder: "e.g. US",
+      priceRange: "Price Range",
+      minPrice: "Min",
+      maxPrice: "Max",
+      brandFilter: "Brand Filter",
+      allBrands: "All",
+      withBrand: "With Brand",
+      withoutBrand: "Without Brand"
+    },
+    productTable: {
+      title: "Product List",
+      loading: "Loading...",
+      noData: "No data available",
+      columns: {
+        rank: "Rank",
+        productTitle: "Product Title",
+        country: "Country",
+        priceRange: "Price Range",
+        brand: "Brand"
+      }
+    },
+    pagination: {
+      previous: "Previous",
+      next: "Next",
+      pageInfo: "Page {current} / {total} (Total {count} items)",
+      pageSize: "{size} items/page"
+    }
+  },
+
   // Footer CTA Section
   footer: {
     title: "Ready to Drive Your Business with Data?",
@@ -85,6 +147,7 @@ export const en = {
   common: {
     loading: "Loading...",
     error: "Error occurred",
-    retry: "Retry"
+    retry: "Retry",
+    welcome: "Welcome"
   }
 }; 

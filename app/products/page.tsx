@@ -1,9 +1,14 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { countryGoogleShoppingMap } from "@/lib/country-google-shopping";
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 
 export default function ProductsPage() {
+  // 所有 hooks 必须在顶层
+  const { isSignedIn, isLoaded } = useUser();
+  const router = useRouter();
   const [country, setCountry] = useState('');
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
@@ -20,9 +25,17 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
-
-  // 记录上一次的筛选条件
   const [lastFilter, setLastFilter] = useState({ country: '', title: '', category: '', brand: '', start: '', end: '', brandIsNull: false, minRank: '', maxRank: '', minPrice: '', maxPrice: '' });
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.replace('/sign-in');
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  if (!isLoaded || !isSignedIn) {
+    return null;
+  }
 
   // 判断筛选条件是否变化
   const filterChanged = () => {
@@ -46,8 +59,6 @@ export default function ProductsPage() {
     params.append('page', String(page));
     params.append('pageSize', String(size));
 
-    console.log('fetch params:', params.toString());
-
     const res = await fetch(`/api/sync-bigquery?${params.toString()}`);
     const json = await res.json();
     setData(json.data);
@@ -55,23 +66,37 @@ export default function ProductsPage() {
     setCurrentPage(page);
     setPageSize(size);
     setLoading(false);
-    // 记录本次筛选条件
     setLastFilter({ country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice });
   };
 
   // 筛选条件变化时自动重置到第一页
-  React.useEffect(() => {
-    if (filterChanged()) {
+  useEffect(() => {
+    const changed =
+      country !== lastFilter.country ||
+      title !== lastFilter.title ||
+      category !== lastFilter.category ||
+      brand !== lastFilter.brand ||
+      start !== lastFilter.start ||
+      end !== lastFilter.end ||
+      brandIsNull !== lastFilter.brandIsNull ||
+      minRank !== lastFilter.minRank ||
+      maxRank !== lastFilter.maxRank ||
+      minPrice !== lastFilter.minPrice ||
+      maxPrice !== lastFilter.maxPrice;
+
+    if (changed) {
+      setCurrentPage(1);
       handleSearch(1, pageSize);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice]);
+  }, [country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice, lastFilter, pageSize]);
 
-  // 页面加载时自动查询第一页
-  React.useEffect(() => {
-    handleSearch(1, pageSize);
+  // currentPage 变化时自动查询
+  useEffect(() => {
+    if (currentPage !== 1) {
+      handleSearch(currentPage, pageSize);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [currentPage]);
 
   // 解析嵌套字段
   const getTitle = (product_title: any) => {
@@ -187,17 +212,16 @@ export default function ProductsPage() {
                 <td className="px-3 py-2">{getPriceRange(item.price_range)}</td>
                 <td className="px-3 py-2">{getDemand(item.relative_demand)}</td>
                 <td className="px-3 py-2">{getDemand(item.previous_relative_demand)}</td>
-                <td className="px-3 py-2 text-xs text-gray-500">{item.rank_timestamp && new Date(item.rank_timestamp.value || item.rank_timestamp).toLocaleString()}</td>
+                <td className="px-3 py-2">{item.rank_timestamp}</td>
               </tr>
             ))}
           </tbody>
         </table>
-        {/* 分页按钮 */}
         <div className="flex gap-2 mt-4 items-center">
           <button
             className="px-3 py-1 border rounded"
             disabled={currentPage === 1}
-            onClick={() => handleSearch(currentPage - 1, pageSize)}
+            onClick={() => setCurrentPage(currentPage - 1)}
           >
             上一页
           </button>
@@ -207,10 +231,23 @@ export default function ProductsPage() {
           <button
             className="px-3 py-1 border rounded"
             disabled={currentPage >= totalPages}
-            onClick={() => handleSearch(currentPage + 1, pageSize)}
+            onClick={() => setCurrentPage(currentPage + 1)}
           >
             下一页
           </button>
+          <select
+            className="border px-2 py-1 ml-4"
+            value={pageSize}
+            onChange={e => {
+              const newSize = Number(e.target.value);
+              setPageSize(newSize);
+              handleSearch(1, newSize);
+            }}
+          >
+            {[10, 20, 50, 100].map(size => (
+              <option key={size} value={size}>{size} 条/页</option>
+            ))}
+          </select>
         </div>
       </div>
     </div>

@@ -28,7 +28,7 @@ export default function Navbar() {
         <a href="#" className="hover:underline">{t.navbar.rankings}</a>
         <a href="#" className="hover:underline">{t.navbar.pricing}</a>
         {isSignedIn && (
-          <Link href="/dashboard" className="hover:underline">仪表板</Link>
+          <Link href="/dashboard" className="hover:underline">{t.navbar.dashboard}</Link>
         )}
       </div>
       <div className="flex items-center gap-4">
@@ -41,7 +41,7 @@ export default function Navbar() {
         
         {isSignedIn ? (
           <div className="flex items-center gap-4">
-            <span className="text-sm">欢迎, {user?.firstName || user?.emailAddresses[0]?.emailAddress}</span>
+            <span className="text-sm">{t.common.welcome}, {user?.firstName || user?.emailAddresses[0]?.emailAddress}</span>
             <UserButton 
               appearance={{
                 elements: {
