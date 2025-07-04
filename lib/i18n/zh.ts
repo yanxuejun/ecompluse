@@ -1,12 +1,13 @@
 export const zh = {
   // 导航栏
   navbar: {
-    logo: "Ecompluse",
+    logo: "Ecompulse",
     trends: "趋势报告",
     rankings: "排行榜",
     pricing: "定价",
     login: "登录",
-    register: "免费注册"
+    register: "免费注册",
+    dashboard: "仪表板"
   },
 
   // 首页Hero区域
@@ -15,6 +16,30 @@ export const zh = {
     subtitle: "基于 Google 官方产品数据，洞察市场趋势，抢占销售先机。",
     primaryCTA: "免费探索热门趋势 →",
     secondaryCTA: "查看工作原理"
+  },
+
+  // 数据统计区
+  dataStats: {
+    countries: {
+      title: "覆盖国家",
+      description: "全球市场覆盖",
+      value: "36"
+    },
+    categories: {
+      title: "产品类目",
+      description: "丰富产品分类",
+      value: "4K+"
+    },
+    products: {
+      title: "产品数据",
+      description: "海量产品信息",
+      value: "亿级"
+    },
+    brands: {
+      title: "知名品牌",
+      description: "品牌全面覆盖",
+      value: "8万+"
+    }
   },
 
   // 社会认同区
@@ -65,6 +90,43 @@ export const zh = {
     note: "数据每周一更新。升级到专业版解锁全部数据。"
   },
 
+  // 产品探索页面
+  productsExplorer: {
+    title: "产品探索",
+    taxonomy: {
+      title: "目录"
+    },
+    filters: {
+      country: "国家",
+      countryPlaceholder: "如 US",
+      priceRange: "价格范围",
+      minPrice: "最低",
+      maxPrice: "最高",
+      brandFilter: "包含品牌",
+      allBrands: "全部",
+      withBrand: "有品牌",
+      withoutBrand: "无品牌"
+    },
+    productTable: {
+      title: "产品列表",
+      loading: "加载中...",
+      noData: "暂无数据",
+      columns: {
+        rank: "排名",
+        productTitle: "产品标题",
+        country: "国家",
+        priceRange: "价格范围",
+        brand: "品牌"
+      }
+    },
+    pagination: {
+      previous: "上一页",
+      next: "下一页",
+      pageInfo: "第 {current} / {total} 页（共 {count} 条）",
+      pageSize: "{size} 条/页"
+    }
+  },
+
   // 底部CTA区
   footer: {
     title: "准备好用数据驱动您的业务了吗？",
@@ -85,6 +147,7 @@ export const zh = {
   common: {
     loading: "加载中...",
     error: "出错了",
-    retry: "重试"
+    retry: "重试",
+    welcome: "欢迎"
   }
 }; 

@@ -2,6 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import { countryGoogleShoppingMap } from "@/lib/country-google-shopping";
+import { useI18n } from '@/lib/i18n/context';
+import { useUser } from '@clerk/nextjs';
+import { useRouter } from 'next/navigation';
 
 interface TaxonomyNode {
   code: number;
@@ -18,6 +21,7 @@ interface TaxonomyTreeProps {
 }
 
 function TaxonomyTree({ onSelect, selectedCode }: TaxonomyTreeProps) {
+  const { t } = useI18n();
   const [tree, setTree] = useState<TaxonomyNode[]>([]);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
 
@@ -56,7 +60,7 @@ function TaxonomyTree({ onSelect, selectedCode }: TaxonomyTreeProps) {
 
   return (
     <div className="bg-white rounded shadow p-4 h-full overflow-auto">
-      <h2 className="font-bold mb-2">目录</h2>
+      <h2 className="font-bold mb-2">{t.productsExplorer.taxonomy.title}</h2>
       {renderTree(tree)}
     </div>
   );
@@ -73,26 +77,27 @@ interface QueryFiltersProps {
 }
 
 function QueryFilters({ filters, onChange }: QueryFiltersProps) {
+  const { t } = useI18n();
   return (
     <div className="bg-white rounded shadow p-4 flex flex-wrap gap-4 items-end">
       <div>
-        <label className="block text-sm mb-1">国家</label>
+        <label className="block text-sm mb-1">{t.productsExplorer.filters.country}</label>
         <input
           className="border px-2 py-1 rounded"
           value={filters.country}
           onChange={e => onChange({ ...filters, country: e.target.value })}
-          placeholder="如 US"
+          placeholder={t.productsExplorer.filters.countryPlaceholder}
         />
       </div>
       <div>
-        <label className="block text-sm mb-1">价格范围</label>
+        <label className="block text-sm mb-1">{t.productsExplorer.filters.priceRange}</label>
         <div className="flex gap-2">
           <input
             className="border px-2 py-1 rounded w-20"
             type="number"
             value={filters.minPrice}
             onChange={e => onChange({ ...filters, minPrice: e.target.value })}
-            placeholder="最低"
+            placeholder={t.productsExplorer.filters.minPrice}
           />
           <span>-</span>
           <input
@@ -100,20 +105,20 @@ function QueryFilters({ filters, onChange }: QueryFiltersProps) {
             type="number"
             value={filters.maxPrice}
             onChange={e => onChange({ ...filters, maxPrice: e.target.value })}
-            placeholder="最高"
+            placeholder={t.productsExplorer.filters.maxPrice}
           />
         </div>
       </div>
       <div>
-        <label className="block text-sm mb-1">包含品牌</label>
+        <label className="block text-sm mb-1">{t.productsExplorer.filters.brandFilter}</label>
         <select
           className="border px-2 py-1 rounded"
           value={filters.brandIsNull}
           onChange={e => onChange({ ...filters, brandIsNull: e.target.value })}
         >
-          <option value="">全部</option>
-          <option value="false">有品牌</option>
-          <option value="true">无品牌</option>
+          <option value="">{t.productsExplorer.filters.allBrands}</option>
+          <option value="false">{t.productsExplorer.filters.withBrand}</option>
+          <option value="true">{t.productsExplorer.filters.withoutBrand}</option>
         </select>
       </div>
     </div>
@@ -131,6 +136,7 @@ interface ProductTableProps {
 }
 
 function ProductTable({ category, filters }: ProductTableProps) {
+  const { t } = useI18n();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -182,21 +188,21 @@ function ProductTable({ category, filters }: ProductTableProps) {
 
   return (
     <div className="bg-white rounded shadow p-4">
-      <h2 className="font-bold mb-2">产品列表</h2>
+      <h2 className="font-bold mb-2">{t.productsExplorer.productTable.title}</h2>
       {loading ? (
-        <div className="text-accent">加载中...</div>
+        <div className="text-accent">{t.productsExplorer.productTable.loading}</div>
       ) : data.length === 0 ? (
-        <div className="text-gray-400">暂无数据</div>
+        <div className="text-gray-400">{t.productsExplorer.productTable.noData}</div>
       ) : (
         <>
         <table className="w-full border-separate border-spacing-y-2">
           <thead>
             <tr className="bg-background">
-              <th className="px-3 py-2 text-left">排名</th>
-              <th className="px-3 py-2 text-left">产品标题</th>
-              <th className="px-3 py-2 text-left">国家</th>
-              <th className="px-3 py-2 text-left">价格范围</th>
-              <th className="px-3 py-2 text-left">品牌</th>
+              <th className="px-3 py-2 text-left">{t.productsExplorer.productTable.columns.rank}</th>
+              <th className="px-3 py-2 text-left">{t.productsExplorer.productTable.columns.productTitle}</th>
+              <th className="px-3 py-2 text-left">{t.productsExplorer.productTable.columns.country}</th>
+              <th className="px-3 py-2 text-left">{t.productsExplorer.productTable.columns.priceRange}</th>
+              <th className="px-3 py-2 text-left">{t.productsExplorer.productTable.columns.brand}</th>
             </tr>
           </thead>
           <tbody>
@@ -237,17 +243,20 @@ function ProductTable({ category, filters }: ProductTableProps) {
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(currentPage - 1)}
           >
-            上一页
+            {t.productsExplorer.pagination.previous}
           </button>
           <span>
-            第 {currentPage} / {totalPages} 页（共 {total} 条）
+            {t.productsExplorer.pagination.pageInfo
+              .replace('{current}', String(currentPage))
+              .replace('{total}', String(totalPages))
+              .replace('{count}', String(total))}
           </span>
           <button
             className="px-3 py-1 border rounded"
             disabled={currentPage >= totalPages}
             onClick={() => setCurrentPage(currentPage + 1)}
           >
-            下一页
+            {t.productsExplorer.pagination.next}
           </button>
           <select
             className="border px-2 py-1 ml-4"
@@ -255,7 +264,9 @@ function ProductTable({ category, filters }: ProductTableProps) {
             onChange={e => setPageSize(Number(e.target.value))}
           >
             {[10, 20, 50, 100].map(size => (
-              <option key={size} value={size}>{size} 条/页</option>
+              <option key={size} value={size}>
+                {t.productsExplorer.pagination.pageSize.replace('{size}', String(size))}
+              </option>
             ))}
           </select>
         </div>
@@ -266,8 +277,21 @@ function ProductTable({ category, filters }: ProductTableProps) {
 }
 
 export default function ProductsExplorerPage() {
+  const { isSignedIn, isLoaded } = useUser();
+  const router = useRouter();
+  const { t } = useI18n();
   const [selectedCode, setSelectedCode] = useState<number | null>(null);
   const [filters, setFilters] = useState<{ country: string; minPrice: string; maxPrice: string; brandIsNull: string }>({ country: '', minPrice: '', maxPrice: '', brandIsNull: '' });
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.replace('/sign-in');
+    }
+  }, [isLoaded, isSignedIn, router]);
+
+  if (!isLoaded || !isSignedIn) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col md:flex-row gap-6 p-6 min-h-screen bg-gray-50">

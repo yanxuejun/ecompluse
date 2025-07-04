@@ -80,6 +80,12 @@ export default async function DashboardPage() {
             </table>
           </div>
         </div>
+        
+        {/* 新增：产品相关页面链接 */}
+        <div className="mt-8 space-x-4">
+          <a href="/products" className="text-blue-600 underline">全数据量查询</a>
+          <a href="/products-explorer" className="text-blue-600 underline">分类目热点产品</a>
+        </div>
       </div>
     </div>
   );
