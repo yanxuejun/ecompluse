@@ -1,33 +1,19 @@
 require('dotenv').config();
 
-// 从 DATABASE_URL 解析 BigQuery 配置
-function parseBigQueryFromDatabaseUrl(databaseUrl) {
-  try {
-    // 假设 DATABASE_URL 格式包含 BigQuery 信息
-    // 例如: postgresql://user:pass@host:port/db?bigquery_project=project&bigquery_dataset=dataset&bigquery_table=table
-    const url = new URL(databaseUrl);
-    const params = url.searchParams;
-    
-    return {
-      projectId: params.get('bigquery_project') || process.env.GOOGLE_CLOUD_PROJECT_ID,
-      datasetId: params.get('bigquery_dataset') || process.env.BIGQUERY_DATASET_ID,
-      tableId: params.get('bigquery_table') || process.env.BIGQUERY_TABLE_ID
-    };
-  } catch (error) {
-    console.warn('Could not parse BigQuery config from DATABASE_URL, using environment variables');
-    return {
-      projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-      datasetId: process.env.BIGQUERY_DATASET_ID,
-      tableId: process.env.BIGQUERY_TABLE_ID
-    };
-  }
+// 从环境变量获取 BigQuery 配置
+function getBigQueryConfig() {
+  return {
+    projectId: process.env.GCP_PROJECT_ID,
+    datasetId: process.env.GCP_DATASET_ID,
+    tableId: process.env.GCP_TABLE_ID
+  };
 }
 
 // 从 GCP_SERVICE_ACCOUNT_JSON 创建临时密钥文件
 function getServiceAccountPath() {
   const serviceAccountJson = process.env.GCP_SERVICE_ACCOUNT_JSON;
   if (!serviceAccountJson) {
-    return process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    return process.env.GCP_KEY_FILENAME;
   }
   
   try {
@@ -47,11 +33,11 @@ function getServiceAccountPath() {
     return tempFile;
   } catch (error) {
     console.warn('Could not create temp service account file:', error.message);
-    return process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    return process.env.GCP_KEY_FILENAME;
   }
 }
 
-const bigQueryConfig = parseBigQueryFromDatabaseUrl(process.env.DATABASE_URL);
+const bigQueryConfig = getBigQueryConfig();
 
 module.exports = {
   // BigQuery 配置
@@ -59,7 +45,7 @@ module.exports = {
     projectId: bigQueryConfig.projectId,
     datasetId: bigQueryConfig.datasetId,
     tableId: bigQueryConfig.tableId,
-    // 使用 GCP_SERVICE_ACCOUNT_JSON 或 GOOGLE_APPLICATION_CREDENTIALS
+    // 使用 GCP_SERVICE_ACCOUNT_JSON 或 GCP_KEY_FILENAME
     keyFilename: getServiceAccountPath()
   },
   
@@ -69,15 +55,10 @@ module.exports = {
     engineId: process.env.GOOGLE_SEARCH_ENGINE_ID
   },
   
-  // 数据库配置
-  database: {
-    url: process.env.DATABASE_URL
-  },
-  
   // 任务配置
   task: {
     country: process.env.TASK_COUNTRY || 'US',
-    categoryId: parseInt(process.env.TASK_CATEGORY_ID) || 1253,
+    categoryId: process.env.TASK_CATEGORY_ID || '123456',
     limit: parseInt(process.env.TASK_LIMIT) || 10,
     delayBetweenRequests: parseInt(process.env.TASK_DELAY) || 1000 // 毫秒
   }

@@ -37,12 +37,12 @@ SELECT * FROM `new_gmc_data.BestSellers_TopProducts_Optimized`;
 INSERT INTO `gmc-bestseller.new_gmc_data.BestSellers_TopProducts_Optimized` (
   -- 建议明确写出所有列名，确保一一对应
   rank_id, rank, ranking_country, ranking_category, brand, product_title, 
-  previous_rank, price_range, relative_demand, previous_relative_demand, rank_timestamp
+  previous_rank, price_range, relative_demand, previous_relative_demand, rank_timestamp,rank_improvement
 )
 SELECT
   -- 选择所有对应的列
   rank_id, rank, ranking_country, ranking_category, brand, product_title, 
-  previous_rank, price_range, relative_demand, previous_relative_demand, rank_timestamp
+  previous_rank, price_range, relative_demand, previous_relative_demand, rank_timestamp,(previous_rank - rank) AS rank_improvement
 FROM
   `gmc-bestseller.new_gmc_data.BestSellers_TopProducts_Optimized`
 -- 1. 关键！只选择当天新增的数据
