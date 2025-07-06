@@ -9,7 +9,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 // 只有在有密钥时才初始化 Stripe
 const stripe = process.env.STRIPE_SECRET_KEY 
   ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: "2025-06-30.basil",
+  apiVersion: "2025-06-30.basil",
     })
   : null;
 
@@ -22,7 +22,7 @@ const priceMap: Record<string, { amount: number; currency: string; name: string 
 
 export async function POST(req: NextRequest) {
   try {
-    const { tier } = await req.json();
+  const { tier } = await req.json();
     
     if (!tier) {
       return NextResponse.json({ error: "Tier is required" }, { status: 400 });
@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
     
     const priceInfo = priceMap[tier];
     if (!priceInfo) {
-      return NextResponse.json({ error: "Invalid tier" }, { status: 400 });
-    }
+    return NextResponse.json({ error: "Invalid tier" }, { status: 400 });
+  }
 
     if (!stripe || !process.env.STRIPE_SECRET_KEY) {
       return NextResponse.json({ 

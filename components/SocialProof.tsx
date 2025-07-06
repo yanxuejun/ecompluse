@@ -124,11 +124,11 @@ export default function SocialProof() {
         {plans.map((plan) => {
           const isSelected = selected === plan.tier;
           return (
-            <div
-              key={plan.name}
+          <div
+            key={plan.name}
               className={`flex-1 rounded-xl shadow-lg p-8 flex flex-col items-center border-2 cursor-pointer transition-all duration-200 ${
                 isSelected ? "scale-105" : "hover:scale-102"
-              }`}
+            }`}
               style={{
                 backgroundColor: 'var(--color-card)',
                 borderColor: isSelected ? 'var(--color-accent)' : 'transparent',
@@ -137,14 +137,14 @@ export default function SocialProof() {
                   : '0 10px 25px rgba(0,0,0,0.1)'
               }}
               onClick={() => setSelected(plan.tier)}
-            >
+          >
               <div 
                 className="mb-2 text-lg font-semibold"
                 style={{ color: 'var(--color-dark)' }}
               >
                 {plan.name}
               </div>
-              {plan.popular && (
+            {plan.popular && (
                 <span 
                   className="mb-2 px-3 py-1 rounded-full text-xs font-bold"
                   style={{ 
@@ -154,8 +154,8 @@ export default function SocialProof() {
                 >
                   Popular
                 </span>
-              )}
-              <div className="flex items-end mb-4">
+            )}
+            <div className="flex items-end mb-4">
                 <span 
                   className="text-2xl line-through mr-2"
                   style={{ color: 'var(--color-dark)' }}
@@ -180,10 +180,10 @@ export default function SocialProof() {
                 style={{ color: 'var(--color-dark)' }}
               >
                 {plan.description}
-              </div>
-              <ul className="mb-6 text-left w-full">
-                {plan.features.map((f, i) => (
-                  <li key={i} className="flex items-center mb-2">
+            </div>
+            <ul className="mb-6 text-left w-full">
+              {plan.features.map((f, i) => (
+                <li key={i} className="flex items-center mb-2">
                     <span 
                       className="mr-2"
                       style={{ color: 'var(--color-accent)' }}
@@ -193,9 +193,9 @@ export default function SocialProof() {
                     <span style={{ color: 'var(--color-dark)' }}>
                       {f}
                     </span>
-                  </li>
-                ))}
-              </ul>
+                </li>
+              ))}
+            </ul>
               {isSelected ? (
                 isSignedIn ? (
                   <button
@@ -242,7 +242,7 @@ export default function SocialProof() {
                   </SignInButton>
                 )
               ) : (
-                <button
+            <button
                   className="w-full py-3 font-bold rounded transition mb-2"
                   style={{
                     backgroundColor: 'var(--color-dark)',
@@ -251,9 +251,9 @@ export default function SocialProof() {
                     cursor: 'not-allowed'
                   }}
                   disabled
-                >
-                  {plan.button}
-                </button>
+            >
+              {plan.button}
+            </button>
               )}
               <div 
                 className="text-xs"
@@ -261,7 +261,7 @@ export default function SocialProof() {
               >
                 Pay once. Build unlimited projects!
               </div>
-            </div>
+          </div>
           );
         })}
       </div>

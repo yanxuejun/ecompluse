@@ -7,12 +7,16 @@ const { parse } = require('csv-parse/sync');
 const prisma = new PrismaClient();
 
 async function main() {
-  const csvPath = path.join(__dirname, '../google_taxonomy_parsed-1.csv');
+  const csvPath = path.join(__dirname, '../google_taxonomy_parsed.csv');
+  console.log('正在读取文件:', csvPath);
+  
   const fileContent = fs.readFileSync(csvPath, 'utf-8');
   const records = parse(fileContent, {
     columns: true,
     skip_empty_lines: true,
   });
+
+  console.log(`找到 ${records.length} 条记录`);
 
   for (const row of records) {
     await prisma.google_Product_Taxonomy.upsert({

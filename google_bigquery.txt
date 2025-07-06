@@ -1,7 +1,7 @@
 google merchant 每周产品数据洞察
 保存在bigquery
 数据库名：new_gmc_data
-表名：BestSellers_TopProducts_479974220
+表名：BestSellers_TopProducts_Optimized
 
 字段schema：[
   {

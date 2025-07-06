@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
   // 构建SQL
   let sql = `SELECT rank_id, rank, ranking_country, ranking_category, brand, rank_timestamp
-             FROM \`new_gmc_data.BestSellers_TopProducts_479974220\` WHERE 1=1`;
+             FROM \`new_gmc_data.BestSellers_TopProducts_Optimized\` WHERE 1=1`;
   if (country) sql += ` AND ranking_country = @country`;
   if (category) sql += ` AND ranking_category = @category`;
   if (brand) sql += ` AND brand = @brand`;
@@ -43,6 +43,10 @@ export async function GET(req: NextRequest) {
     minPrice: minPrice ? Number(minPrice) : null,
     maxPrice: maxPrice ? Number(maxPrice) : null,
   };
+
+  console.log('🔍 BigQuery Products API Query:');
+  console.log(sql);
+  console.log('📊 Query Parameters:', params);
 
   const types: any = {
     country: 'STRING',

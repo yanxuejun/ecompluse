@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
   // 查询总数
   const countSql = `
     SELECT COUNT(*) as total
-    FROM \`new_gmc_data.BestSellers_TopProducts_479974220\`
+    FROM \`new_gmc_data.BestSellers_TopProducts_Optimized\`
     ${where}
   `;
 
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
       relative_demand, 
       previous_relative_demand, 
       rank_timestamp
-    FROM \`new_gmc_data.BestSellers_TopProducts_479974220\`
+    FROM \`new_gmc_data.BestSellers_TopProducts_Optimized\`
     ${where}
     ORDER BY rank ASC
     LIMIT @pageSize OFFSET @offset
@@ -76,6 +76,12 @@ export async function GET(req: NextRequest) {
     pageSize,
     offset: (page - 1) * pageSize,
   };
+
+  console.log('🔍 BigQuery Sync API - Count Query:');
+  console.log(countSql);
+  console.log('🔍 BigQuery Sync API - Data Query:');
+  console.log(dataSql);
+  console.log('📊 Query Parameters:', params);
 
   const types: any = {
     country: 'STRING',

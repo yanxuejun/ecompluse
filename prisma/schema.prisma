@@ -10,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -27,4 +27,20 @@ model Google_Product_Taxonomy {
   catalog_depth       Int
   parent_catalog_code Int
   full_catalog_name   String
+}
+
+model ProductWeekRank {
+  id          Int      @id @default(autoincrement())
+  rank        Int      // 排名
+  productTitle String  // 产品标题
+  categoryId  Int      // 类目ID
+  imageUrl    String?  // 图片URL
+  searchTitle String?  // 搜索结果的标题
+  searchLink  String?  // 搜索结果的链接
+  country     String   // 国家
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([country, categoryId, rank])
+  @@index([createdAt])
 }
