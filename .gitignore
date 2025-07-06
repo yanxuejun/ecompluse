@@ -36,6 +36,15 @@ yarn-error.log*
 # vercel
 .vercel
 
+# sensitive files
+scripts/temp/
+*.json
+!package.json
+!package-lock.json
+!components.json
+!tsconfig.json
+!next-env.d.ts
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
