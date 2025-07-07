@@ -1,7 +1,7 @@
 export const en = {
   // Navigation
   navbar: {
-    logo: "Ecompulse",
+    logo: "EcomPulse",
     trends: "Trend Reports",
     rankings: "Rankings",
     pricing: "Pricing",

@@ -25,7 +25,7 @@ export default function Footer() {
           </Link>
         </div>
         <div className="text-gray-400">
-          © {new Date().getFullYear()} Ecompulse. All rights reserved.
+          © {new Date().getFullYear()} EcomPulseData. All rights reserved.
         </div>
       </div>
     </footer>

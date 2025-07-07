@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ecompluse - 发现下一个全球爆款",
+  title: "EcomPulse - 发现下一个全球爆款",
   description: "基于 Google 官方产品数据，洞察市场趋势，抢占销售先机",
 };
 

@@ -1,7 +1,7 @@
 export const zh = {
   // 导航栏
   navbar: {
-    logo: "Ecompulse",
+    logo: "EcomPulse",
     trends: "趋势报告",
     rankings: "排行榜",
     pricing: "定价",

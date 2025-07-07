@@ -109,10 +109,10 @@ export default function PrivacyPolicy() {
               <p>
                 If you have any questions about this Privacy Policy, please contact us at:{' '}
                 <a 
-                  href="mailto:privacy@ecompulse.com" 
+                  href="mailto:privacy@ecompulsedata.com" 
                   className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
                 >
-                  privacy@ecompulse.com
+                  privacy@ecompulsedata.com
                 </a>
               </p>
             </section>

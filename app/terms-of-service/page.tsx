@@ -22,7 +22,7 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Acceptance of Terms</h2>
               <p>
-                By accessing and using Ecompulse services, you accept and agree to be bound by the 
+                By accessing and using EcompulseData services, you accept and agree to be bound by the 
                 terms and provision of this agreement. If you do not agree to abide by the above, 
                 please do not use this service.
               </p>
@@ -31,7 +31,7 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">2. Description of Service</h2>
               <p className="mb-3">
-                Ecompulse provides e-commerce analytics and product trend analysis services, including:
+                EcompulseData provides e-commerce analytics and product trend analysis services, including:
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>Product ranking and trend analysis</li>
@@ -83,7 +83,7 @@ export default function TermsOfService() {
               <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Intellectual Property</h2>
               <p>
                 The service and its original content, features, and functionality are and will remain 
-                the exclusive property of Ecompulse and its licensors. The service is protected by 
+                the exclusive property of EcompulseData and its licensors. The service is protected by 
                 copyright, trademark, and other laws.
               </p>
             </section>
@@ -108,7 +108,7 @@ export default function TermsOfService() {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">9. Limitation of Liability</h2>
               <p>
-                In no event shall Ecompulse be liable for any indirect, incidental, special, 
+                In no event shall EcompulseData be liable for any indirect, incidental, special, 
                 consequential, or punitive damages, including without limitation, loss of profits, 
                 data, use, goodwill, or other intangible losses.
               </p>
@@ -127,7 +127,7 @@ export default function TermsOfService() {
               <h2 className="text-xl font-semibold text-gray-900 mb-3">11. Governing Law</h2>
               <p>
                 These Terms shall be interpreted and governed by the laws of the jurisdiction in 
-                which Ecompulse operates, without regard to its conflict of law provisions.
+                which EcompulseData operates, without regard to its conflict of law provisions.
               </p>
             </section>
 
@@ -144,10 +144,10 @@ export default function TermsOfService() {
               <p>
                 If you have any questions about these Terms of Service, please contact us at:{' '}
                 <a 
-                  href="mailto:legal@ecompulse.com" 
+                  href="mailto:legal@ecompulsedata.com" 
                   className="text-blue-600 hover:text-blue-800 transition-colors duration-200"
                 >
-                  legal@ecompulse.com
+                  legal@ecompulsedata.com
                 </a>
               </p>
             </section>
