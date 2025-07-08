@@ -1,9 +1,33 @@
-import { auth } from "@clerk/nextjs/server";
+'use client';
+import { useEffect, useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { redirect } from "next/navigation";
 
-export default async function DashboardPage() {
-  const { userId } = await auth();
-  
+export default function DashboardPage() {
+  const { user, isSignedIn, isLoaded } = useUser();
+  const [credits, setCredits] = useState<number | null>(null);
+  const [tier, setTier] = useState<string>('');
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      fetch('/api/user/init', { method: 'POST' });
+    }
+  }, [isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    async function fetchCredits() {
+      if (isLoaded && isSignedIn) {
+        const res = await fetch('/api/user/profile');
+        if (res.ok) {
+          const data = await res.json();
+          setCredits(data.credits);
+          setTier(data.tier);
+        }
+      }
+    }
+    fetchCredits();
+  }, [isLoaded, isSignedIn]);
+
   if (!userId) {
     redirect("/");
   }
@@ -11,6 +35,10 @@ export default async function DashboardPage() {
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto">
+        <div className="mb-6 flex items-center gap-6">
+          <span className="text-lg font-bold">Credits: {tier === 'premium' ? 'Unlimited' : credits !== null ? credits : '--'}</span>
+          <span className="text-lg font-bold">Plan: {tier || '--'}</span>
+        </div>
         <h1 className="text-3xl font-bold mb-8" style={{fontFamily: 'var(--font-family-heading)'}}>
           仪表板
         </h1>

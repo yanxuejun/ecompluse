@@ -84,6 +84,21 @@ export default function ProductsPage() {
     handleSearch(1, newSize); // Reset to page 1 when page size changes
   };
 
+  // 在 handleSearch 之前加一个 handleQueryWithCredits
+  const handleQueryWithCredits = async () => {
+    setLoading(true);
+    const res = await fetch('/api/credits/deduct', { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || '积分不足，无法查询');
+      setLoading(false);
+      return;
+    }
+    // Premium 或扣减成功
+    await handleSearch(1, pageSize);
+    setLoading(false);
+  };
+
   // Render null while checking for authentication
   if (!isLoaded || !isSignedIn) {
     return (
@@ -135,7 +150,7 @@ export default function ProductsPage() {
           只看无品牌
         </label>
         <button
-          onClick={() => handleSearch(1, pageSize)}
+          onClick={handleQueryWithCredits}
           className="bg-blue-600 text-white font-bold text-base md:text-lg px-6 py-2 md:px-8 md:py-3 rounded-lg shadow hover:bg-blue-700 transition md:w-auto"
           disabled={loading}
         >

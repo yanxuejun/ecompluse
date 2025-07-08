@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
 import { ClerkProvider } from "@clerk/nextjs";
+import ClientWrapper from "@/components/ClientWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,13 +20,10 @@ export const metadata: Metadata = {
   description: "基于 Google 官方产品数据，洞察市场趋势，抢占销售先机",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider>
+      <ClientWrapper />
       <html lang="zh-CN">
         <head>
           <link rel="preconnect" href="https://fonts.googleapis.com" />

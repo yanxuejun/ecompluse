@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { headers } from "next/headers";
+// 1. 引入 BigQuery 工具
+import { updateUserProfileCreditsAndTier } from '@/lib/bigquery';
 
 // 检查环境变量
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -40,13 +42,15 @@ export async function POST(req: NextRequest) {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
         console.log('Payment completed for session:', session.id);
-        
-        // 这里可以添加业务逻辑，比如：
-        // - 更新用户订阅状态
-        // - 发送确认邮件
-        // - 记录支付日志
-        // - 激活用户权限
-        
+        // 获取 Clerk userId 和 tier
+        const userId = session.client_reference_id || session.metadata?.userId;
+        const tier = session.metadata?.tier;
+        let credits = 20;
+        if (tier === 'standard') credits = 580;
+        if (tier === 'premium') credits = null;
+        if (userId && tier) {
+          await updateUserProfileCreditsAndTier(userId, credits, tier);
+        }
         break;
 
       case 'payment_intent.succeeded':

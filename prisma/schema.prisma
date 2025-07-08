@@ -44,3 +44,11 @@ model ProductWeekRank {
   @@index([country, categoryId, rank])
   @@index([createdAt])
 }
+
+model UserProfile {
+  id        String   @id // Clerk userId
+  credits   Int?     // null or very large number means unlimited
+  tier      String   // 'starter' | 'standard' | 'premium'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
