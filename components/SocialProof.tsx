@@ -155,13 +155,7 @@ export default function SocialProof() {
                   USD
                 </span>
               </div>
-              <div 
-                className="mb-4 text-center"
-                style={{ color: 'var(--color-dark)' }}
-              >
-                {plan.description}
-            </div>
-            <ul className="mb-6 text-left w-full">
+              <ul className="mb-6 text-left w-full">
               {plan.features.map((f, i) => (
                 <li key={i} className="flex items-center mb-2">
                     <span 
