@@ -7,57 +7,37 @@ import { useUser, SignInButton } from '@clerk/nextjs';
 const plans = [
   {
     name: "Starter",
-    price: 199,
-    oldPrice: 299,
+    price: 0,
+    oldPrice: 1.99,
     features: [
-      "NextJS boilerplate",
-      "SEO-friendly structure",
-      "Blog & CMS",
-      "Payment with Stripe",
-      "Data storage with Supabase",
-      "Google Oauth & One-Tap Login",
-      "i18n support",
+      "Free trial",
+      "Free Points 28",
     ],
-    description: "Get started with your first SaaS startup.",
-    button: "Get ShipAny ⚡",
+    button: "Get EcomPulse",
     popular: false,
     tier: "starter",
   },
   {
     name: "Standard",
-    price: 249,
-    oldPrice: 349,
+    price: 29.99,
+    oldPrice: 39.99,
     features: [
-      "Everything in Starter, plus",
-      "Deploy with Vercel or Cloudflare",
-      "Generation of Privacy & Terms",
-      "Google Analytics Integration",
-      "Google Search Console Integration",
-      "Discord community",
-      "Technical support for your first ship",
-      "Lifetime updates",
+      "Free trial",
+      "Free Points 580",
     ],
-    description: "Ship Fast with your SaaS Startups.",
-    button: "Get ShipAny ⚡",
+    button: "Get EcomPulse",
     popular: true,
     tier: "standard",
   },
   {
     name: "Premium",
-    price: 299,
-    oldPrice: 399,
+    price: 49.99,
+    oldPrice: 69.99,
     features: [
-      "Everything in Standard, plus",
-      "More Components for choosing",
-      "Business Functions & SDK with AI",
-      "User Console",
-      "Admin System",
-      "Credits Management",
-      "API Keys Management",
-      "Priority Technical Support",
+      "Free trial",
+      "Free Points Unlimited",
     ],
-    description: "Ship Any AI SaaS Startups.",
-    button: "Get ShipAny ⚡",
+    button: "Get EcomPulse",
     popular: false,
     tier: "premium",
   },
@@ -255,12 +235,6 @@ export default function SocialProof() {
               {plan.button}
             </button>
               )}
-              <div 
-                className="text-xs"
-                style={{ color: 'var(--color-dark)', opacity: 0.6 }}
-              >
-                Pay once. Build unlimited projects!
-              </div>
           </div>
           );
         })}
