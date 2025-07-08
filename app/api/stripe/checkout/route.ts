@@ -15,9 +15,9 @@ const stripe = process.env.STRIPE_SECRET_KEY
 
 // 价格映射 - 使用实际的价格 ID 或动态创建
 const priceMap: Record<string, { amount: number; currency: string; name: string }> = {
-  starter: { amount: 19900, currency: "usd", name: "Starter Plan" },
-  standard: { amount: 24900, currency: "usd", name: "Standard Plan" },
-  premium: { amount: 29900, currency: "usd", name: "Premium Plan" },
+  starter: { amount: 0, currency: "usd", name: "Starter Plan" },
+  standard: { amount: 2999, currency: "usd", name: "Standard Plan" },
+  premium: { amount: 4999, currency: "usd", name: "Premium Plan" },
 };
 
 export async function POST(req: NextRequest) {
