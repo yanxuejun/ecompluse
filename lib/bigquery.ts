@@ -1,13 +1,17 @@
 import { BigQuery } from '@google-cloud/bigquery';
 
-const bigquery = new BigQuery();
+const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON!);
+const bigquery = new BigQuery({ credentials });
+const projectId = process.env.GCP_PROJECT_ID!;
 const datasetId = 'new_gmc_data'; // 已替换为你的数据集名
 const tableId = 'user_profile'; // TODO: 替换为你的实际表名
+const tableRef = `
+  \`${projectId}.${datasetId}.${tableId}\`
+`;
 
 export async function getUserProfile(userId: string) {
   const query = `
-    SELECT * FROM \
-      \`${datasetId}.${tableId}\`
+    SELECT * FROM ${tableRef}
     WHERE id = @userId
     LIMIT 1
   `;
@@ -18,8 +22,7 @@ export async function getUserProfile(userId: string) {
 
 export async function createUserProfile(userId: string) {
   const query = `
-    INSERT INTO \
-      \`${datasetId}.${tableId}\` (id, credits, tier, createdAt, updatedAt)
+    INSERT INTO ${tableRef} (id, credits, tier, createdAt, updatedAt)
     VALUES (@userId, 20, 'starter', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())
   `;
   const options = { query, params: { userId } };
@@ -28,8 +31,7 @@ export async function createUserProfile(userId: string) {
 
 export async function deductUserCredit(userId: string) {
   const query = `
-    UPDATE \
-      \`${datasetId}.${tableId}\`
+    UPDATE ${tableRef}
     SET credits = credits - 1, updatedAt = CURRENT_TIMESTAMP()
     WHERE id = @userId AND credits > 0
   `;
@@ -39,8 +41,7 @@ export async function deductUserCredit(userId: string) {
 
 export async function updateUserProfileCreditsAndTier(userId: string, credits: number|null, tier: string) {
   const query = `
-    UPDATE \
-      \`${datasetId}.${tableId}\`
+    UPDATE ${tableRef}
     SET credits = @credits, tier = @tier, updatedAt = CURRENT_TIMESTAMP()
     WHERE id = @userId
   `;
