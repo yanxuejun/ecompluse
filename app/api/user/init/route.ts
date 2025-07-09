@@ -3,7 +3,7 @@ import { getUserProfile, createUserProfile } from "@/lib/bigquery";
 import { NextResponse } from "next/server";
 
 export async function POST() {
-  const { userId } = auth();
+  const { userId } = await auth();
   console.log("[user/init] userId:", userId);
   if (!userId) return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
 
