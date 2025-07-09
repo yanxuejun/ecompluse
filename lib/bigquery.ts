@@ -8,7 +8,7 @@ const credentials = JSON.parse(credentialsJson);
 const bigquery = new BigQuery({ credentials });
 const projectId = process.env.GCP_PROJECT_ID!;
 const datasetId = 'new_gmc_data'; // 已替换为你的数据集名
-const tableId = 'user_profile'; // TODO: 替换为你的实际表名
+const tableId = 'UserProfile'; // TODO: 替换为你的实际表名
 const tableRef = `
   \`${projectId}.${datasetId}.${tableId}\`
 `;
