@@ -28,7 +28,7 @@ export default function DashboardPage() {
     fetchCredits();
   }, [isLoaded, isSignedIn]);
 
-  if (!userId) {
+  if (!user?.id) {
     redirect("/");
   }
 
