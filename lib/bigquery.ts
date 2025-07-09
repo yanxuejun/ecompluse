@@ -1,6 +1,10 @@
 import { BigQuery } from '@google-cloud/bigquery';
 
-const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON!);
+const credentialsJson = process.env.GCP_SERVICE_ACCOUNT_JSON;
+if (!credentialsJson) {
+  throw new Error('GCP_SERVICE_ACCOUNT_JSON 环境变量未设置');
+}
+const credentials = JSON.parse(credentialsJson);
 const bigquery = new BigQuery({ credentials });
 const projectId = process.env.GCP_PROJECT_ID!;
 const datasetId = 'new_gmc_data'; // 已替换为你的数据集名
