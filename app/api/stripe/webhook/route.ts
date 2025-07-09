@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
         // 获取 Clerk userId 和 tier
         const userId = session.client_reference_id || session.metadata?.userId;
         const tier = session.metadata?.tier;
-        let credits = 20;
+        let credits: number | null = 20;
         if (tier === 'standard') credits = 580;
         if (tier === 'premium') credits = null;
         if (userId && tier) {
