@@ -62,21 +62,51 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
   };
 
   const handleQueryWithCredits = async () => {
-    if (credits === 0) {
-      alert('请下个月再来查询或升级套餐');
+    // 检查积分是否足够
+    if (credits === null) {
+      alert('正在加载用户信息，请稍后再试');
       return;
     }
+    
+    if (credits <= 0) {
+      alert('积分不足！\n\n当前积分：0\n\n请升级到高级套餐获得无限积分，或等待下月积分重置。');
+      return;
+    }
+
     setLoading(true);
-    const res = await fetch('/api/credits/deduct', { method: 'POST' });
-    const data = await res.json();
-    if (!res.ok) {
-      alert(data.error || '积分不足，无法查询');
+    try {
+      const res = await fetch('/api/credits/deduct', { method: 'POST' });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        if (res.status === 400) {
+          alert('积分不足！\n\n请升级到高级套餐获得无限积分，或等待下月积分重置。');
+        } else {
+          alert(`扣除积分失败：${data.error || '未知错误'}`);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // 实时更新积分显示
+      const newCredits = data.remainingCredits || (typeof credits === 'number' ? credits - 1 : credits);
+      setCredits(newCredits);
+      
+      // 显示积分扣除成功提示
+      if (newCredits > 0) {
+        alert(`查询成功！\n\n已扣除1积分，剩余积分：${newCredits}`);
+      } else {
+        alert('查询成功！\n\n已扣除1积分，积分已用完。');
+      }
+      
+      // 执行查询
+      await handleSearch(1, pageSize);
+    } catch (error) {
+      alert('网络错误，请稍后重试');
+      console.error('Query error:', error);
+    } finally {
       setLoading(false);
-      return;
     }
-    setCredits(typeof credits === 'number' ? credits - 1 : credits);
-    await handleSearch(1, pageSize);
-    setLoading(false);
   };
 
   const getTitle = (product_title: any) => {

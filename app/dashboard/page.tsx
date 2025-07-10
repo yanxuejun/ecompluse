@@ -19,11 +19,7 @@ export default function DashboardPage() {
   const [selectedMenu, setSelectedMenu] = useState('all');
   const router = useRouter();
 
-  useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      fetch('/api/user/init', { method: 'POST' });
-    }
-  }, [isLoaded, isSignedIn]);
+  // 用户初始化由 ClientWrapper 处理，这里不需要重复调用
 
   useEffect(() => {
     async function fetchCredits() {
@@ -74,7 +70,16 @@ export default function DashboardPage() {
         <div className="flex flex-col sm:flex-row items-center justify-between bg-white rounded-lg shadow p-6 mb-8 gap-4">
           {/* 左侧：Credits 和 Plan */}
           <div className="flex flex-col sm:flex-row gap-4 items-center">
-            <span className="text-lg font-bold text-blue-900">Credits: {tier === 'premium' ? 'Unlimited' : credits !== null ? credits : '--'}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-blue-900">
+                Credits: {tier === 'premium' ? 'Unlimited' : credits !== null ? credits : '--'}
+              </span>
+              {credits !== null && credits <= 5 && tier !== 'premium' && (
+                <span className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                  积分不足
+                </span>
+              )}
+            </div>
             <span className="text-lg font-bold text-blue-900">Plan: {tier || '--'}</span>
           </div>
           {/* 右侧：用户信息和返回首页按钮 */}

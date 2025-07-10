@@ -103,6 +103,13 @@ export async function GET(req: NextRequest) {
   const credentials = JSON.parse(process.env.GCP_SERVICE_ACCOUNT_JSON!);
   const bigquery = new BigQuery({ projectId: credentials.project_id, credentials });
 
+  // 打印最终SQL和参数
+  console.log('=== BigQuery 查询SQL ===');
+  console.log('Count SQL:', countSql);
+  console.log('Data SQL:', dataSql);
+  console.log('参数:', params);
+  console.log('=======================');
+
   // 查询总数
   const [countRows] = await bigquery.query({
     query: countSql,

@@ -4,18 +4,19 @@ import { useI18n } from '@/lib/i18n/context';
 import { countryGoogleShoppingMap } from "@/lib/country-google-shopping";
 
 interface TaxonomyNode {
-  code: number;
+  code: string;
   catalog_name: string;
   catalog_depth: number;
-  parent_catalog_code: number;
+  parent_catalog_code: number | null;
   full_catalog_name: string;
   children: TaxonomyNode[];
+  displayName?: string;
 }
 
-function TaxonomyTree({ onSelect, selectedCode }: { onSelect: (code: number) => void; selectedCode: number | null }) {
+function TaxonomyTree({ onSelect, selectedCode }: { onSelect: (code: string) => void; selectedCode: string | null }) {
   const { t } = useI18n();
   const [tree, setTree] = React.useState<TaxonomyNode[]>([]);
-  const [expanded, setExpanded] = React.useState<Record<number, boolean>>({});
+  const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
   React.useEffect(() => {
     fetch('/api/taxonomy-tree')
       .then(res => res.json())
@@ -40,7 +41,7 @@ function TaxonomyTree({ onSelect, selectedCode }: { onSelect: (code: number) => 
                 {expanded[node.code] ? '▼' : '▶'}
               </span>
             )}
-            {node.catalog_name}
+            {node.displayName || node.catalog_name}
           </div>
           {node.children.length > 0 && expanded[node.code] && renderTree(node.children)}
         </li>
@@ -107,7 +108,7 @@ function QueryFilters({ filters, onChange, children }: { filters: { country: str
   );
 }
 
-function ProductTable({ category, filters }: { category: number | null; filters: { country: string; minPrice: string; maxPrice: string; brandIsNull: string } }) {
+function ProductTable({ category, filters }: { category: string | null; filters: { country: string; minPrice: string; maxPrice: string; brandIsNull: string } }) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -239,26 +240,56 @@ function ProductTable({ category, filters }: { category: number | null; filters:
 
 export default function ProductsExplorerContent({ credits, setCredits }: { credits: number|null, setCredits: (n: number|null)=>void }) {
   // 用于表单输入的临时 state
-  const [pendingCategory, setPendingCategory] = useState<number | null>(null);
+  const [pendingCategory, setPendingCategory] = useState<string | null>(null);
   const [pendingFilters, setPendingFilters] = useState<{ country: string; minPrice: string; maxPrice: string; brandIsNull: string }>({ country: '', minPrice: '', maxPrice: '', brandIsNull: '' });
   // 实际查询用的 state
-  const [category, setCategory] = useState<number | null>(null);
+  const [category, setCategory] = useState<string | null>(null);
   const [filters, setFilters] = useState<{ country: string; minPrice: string; maxPrice: string; brandIsNull: string }>({ country: '', minPrice: '', maxPrice: '', brandIsNull: '' });
+  
   // 查询按钮点击时应用
   const handleQuery = async () => {
-    if (credits === 0) {
-      alert('请下个月再来查询或升级套餐');
+    // 检查积分是否足够
+    if (credits === null) {
+      alert('正在加载用户信息，请稍后再试');
       return;
     }
-    const res = await fetch('/api/credits/deduct', { method: 'POST' });
-    const data = await res.json();
-    if (!res.ok) {
-      alert(data.error || '积分不足，无法查询');
+    
+    if (credits <= 0) {
+      alert('积分不足！\n\n当前积分：0\n\n请升级到高级套餐获得无限积分，或等待下月积分重置。');
       return;
     }
-    setCredits(typeof credits === 'number' ? credits - 1 : credits);
-    setCategory(pendingCategory);
-    setFilters(pendingFilters);
+
+    try {
+      const res = await fetch('/api/credits/deduct', { method: 'POST' });
+      const data = await res.json();
+      
+      if (!res.ok) {
+        if (res.status === 400) {
+          alert('积分不足！\n\n请升级到高级套餐获得无限积分，或等待下月积分重置。');
+        } else {
+          alert(`扣除积分失败：${data.error || '未知错误'}`);
+        }
+        return;
+      }
+
+      // 实时更新积分显示
+      const newCredits = data.remainingCredits || (typeof credits === 'number' ? credits - 1 : credits);
+      setCredits(newCredits);
+      
+      // 显示积分扣除成功提示
+      if (newCredits > 0) {
+        alert(`查询成功！\n\n已扣除1积分，剩余积分：${newCredits}`);
+      } else {
+        alert('查询成功！\n\n已扣除1积分，积分已用完。');
+      }
+      
+      // 应用查询参数
+      setCategory(pendingCategory);
+      setFilters(pendingFilters);
+    } catch (error) {
+      alert('网络错误，请稍后重试');
+      console.error('Query error:', error);
+    }
   };
   return (
     <div className="flex flex-col md:flex-row gap-6 p-6 min-h-screen bg-gray-50">
