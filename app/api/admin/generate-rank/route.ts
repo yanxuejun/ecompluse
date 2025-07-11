@@ -87,6 +87,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, count: enrichedRows.length });
   } catch (e: any) {
-    return NextResponse.json({ success: false, error: e.message || String(e) }, { status: 500 });
+    console.error("BigQuery Insert Error:", e);
+    if (e && e.errors) {
+      console.error("BigQuery Insert Error details:", e.errors);
+    }
+    return NextResponse.json({ success: false, error: e.message || String(e), details: e.errors }, { status: 500 });
   }
 } 
