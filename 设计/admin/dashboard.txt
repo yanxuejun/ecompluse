@@ -1,0 +1,22 @@
+.env文件
+GCP_PROJECT_ID
+GCP_DATASET_ID
+
+GOOGLE_SEARCH_API_KEY
+GOOGLE_SEARCH_ENGINE_ID
+
+新建页面admin/dashboard
+
+
+界面上显示，输入框有，国家 类目 前多少排名，查询按钮：生成上升最快排名数据
+
+点击查询后，根据这些查询条件，国家ranking_country 类目ranking_category 上升最快previous_rank-rank 倒叙排列 查询bigquery 表BestSellers_TopProducts_479974220 ，生成前多少排名
+
+然后，将生成的数据插入到表product_week_rank_enriched 中
+
+rank_id rank product_title category_id country rank_timestamp与 BestSellers_TopProducts_479974220对应一致
+image_url search_link search_title 是根据 product_title 调用google search api 第一项的结果
+
+rank_improvment 是previous_rank-rank
+rank_type 填入1
+rank_order 填入排名
