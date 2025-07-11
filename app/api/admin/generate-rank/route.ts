@@ -33,33 +33,46 @@ async function searchGoogleImage(title: string) {
 export async function POST(req: NextRequest) {
   try {
     const { country, category, topN } = await req.json();
+    const categoryNum = Number(category);
     const bq = getBigQueryClient();
 
     // 查询Top N
     const [rows] = await bq.query({
       query: `
         SELECT
-          rank_id, rank, product_title, category_id, country, rank_timestamp, previous_rank
+          rank_id, rank, product_title, ranking_category, ranking_country, rank_timestamp, previous_rank
         FROM \`${projectId}.${datasetId}.BestSellers_TopProducts_479974220\`
-        WHERE country = @country AND category_id = @category
+        WHERE ranking_country = @country AND ranking_category = @category
         ORDER BY previous_rank - rank DESC
         LIMIT @topN
       `,
-      params: { country, category, topN },
+      params: { country, category: categoryNum, topN },
     });
 
     // 组装插入数据
     const enrichedRows = await Promise.all(
       rows.map(async (row: any, idx: number) => {
-        const google = await searchGoogleImage(row.product_title);
+        const google = await searchGoogleImage(
+          Array.isArray(row.product_title) && row.product_title.length > 0
+            ? row.product_title[0].name
+            : String(row.product_title || "")
+        );
         return {
-          ...row,
+          rank_id: String(row.rank_id),
+          rank: Number(row.rank),
+          product_title: Array.isArray(row.product_title) && row.product_title.length > 0
+            ? String(row.product_title[0].name)
+            : "",
+          category_id: Number(row.ranking_category),
+          country: String(row.ranking_country),
           image_url: google.image_url,
           search_link: google.search_link,
           search_title: google.search_title,
-          rank_improvement: row.previous_rank - row.rank,
-          rank_type: 1,
-          rank_order: idx + 1,
+          rank_timestamp: row.rank_timestamp,
+          previous_rank: Number(row.previous_rank),
+          rank_improvement: Number(row.previous_rank) - Number(row.rank),
+          rank_type: "1",
+          rank_order: String(idx + 1),
         };
       })
     );

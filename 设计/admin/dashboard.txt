@@ -20,3 +20,140 @@ image_url search_link search_title 是根据 product_title 调用google search a
 rank_improvment 是previous_rank-rank
 rank_type 填入1
 rank_order 填入排名
+
+
+product_week_rank_enriched
+[{
+  "column_name": "rank_id",
+  "data_type": "STRING",
+  "is_nullable": "YES"
+}, {
+  "column_name": "rank",
+  "data_type": "INT64",
+  "is_nullable": "YES"
+}, {
+  "column_name": "product_title",
+  "data_type": "STRING",
+  "is_nullable": "YES"
+}, {
+  "column_name": "category_id",
+  "data_type": "INT64",
+  "is_nullable": "YES"
+}, {
+  "column_name": "country",
+  "data_type": "STRING",
+  "is_nullable": "YES"
+}, {
+  "column_name": "image_url",
+  "data_type": "STRING",
+  "is_nullable": "YES"
+}, {
+  "column_name": "search_title",
+  "data_type": "STRING",
+  "is_nullable": "YES"
+}, {
+  "column_name": "search_link",
+  "data_type": "STRING",
+  "is_nullable": "YES"
+}, {
+  "column_name": "rank_timestamp",
+  "data_type": "TIMESTAMP",
+  "is_nullable": "YES"
+}, {
+  "column_name": "created_at",
+  "data_type": "TIMESTAMP",
+  "is_nullable": "YES"
+}, {
+  "column_name": "updated_at",
+  "data_type": "TIMESTAMP",
+  "is_nullable": "YES"
+}, {
+  "column_name": "previous_rank",
+  "data_type": "INT64",
+  "is_nullable": "YES"
+}, {
+  "column_name": "rank_improvement",
+  "data_type": "INT64",
+  "is_nullable": "YES"
+}, {
+  "column_name": "rank_type",
+  "data_type": "STRING",
+  "is_nullable": "YES"
+}, {
+  "column_name": "rank_order",
+  "data_type": "STRING",
+  "is_nullable": "YES"
+}]
+
+
+BestSellers_TopProducts_479974220
+
+[{
+  "column_name": "rank_timestamp",
+  "data_type": "TIMESTAMP",
+  "is_nullable": "YES"
+}, {
+  "column_name": "rank_id",
+  "data_type": "STRING",
+  "is_nullable": "YES"
+}, {
+  "column_name": "rank",
+  "data_type": "INT64",
+  "is_nullable": "YES"
+}, {
+  "column_name": "previous_rank",
+  "data_type": "INT64",
+  "is_nullable": "YES"
+}, {
+  "column_name": "ranking_country",
+  "data_type": "STRING",
+  "is_nullable": "YES"
+}, {
+  "column_name": "ranking_category",
+  "data_type": "INT64",
+  "is_nullable": "YES"
+}, {
+  "column_name": "ranking_category_path",
+  "data_type": "ARRAY\u003cSTRUCT\u003clocale STRING, name STRING\u003e\u003e",
+  "is_nullable": "NO"
+}, {
+  "column_name": "product_title",
+  "data_type": "ARRAY\u003cSTRUCT\u003clocale STRING, name STRING\u003e\u003e",
+  "is_nullable": "NO"
+}, {
+  "column_name": "gtins",
+  "data_type": "ARRAY\u003cSTRING\u003e",
+  "is_nullable": "NO"
+}, {
+  "column_name": "brand",
+  "data_type": "STRING",
+  "is_nullable": "YES"
+}, {
+  "column_name": "google_brand_id",
+  "data_type": "STRING",
+  "is_nullable": "YES"
+}, {
+  "column_name": "google_product_category",
+  "data_type": "INT64",
+  "is_nullable": "YES"
+}, {
+  "column_name": "google_product_category_path",
+  "data_type": "ARRAY\u003cSTRUCT\u003clocale STRING, name STRING\u003e\u003e",
+  "is_nullable": "NO"
+}, {
+  "column_name": "price_range",
+  "data_type": "STRUCT\u003cmin NUMERIC, max NUMERIC, currency STRING\u003e",
+  "is_nullable": "YES"
+}, {
+  "column_name": "relative_demand",
+  "data_type": "STRUCT\u003cmin INT64, max INT64, bucket STRING\u003e",
+  "is_nullable": "YES"
+}, {
+  "column_name": "previous_relative_demand",
+  "data_type": "STRUCT\u003cmin INT64, max INT64, bucket STRING\u003e",
+  "is_nullable": "YES"
+}, {
+  "column_name": "_PARTITIONTIME",
+  "data_type": "TIMESTAMP",
+  "is_nullable": "NO"
+}]
