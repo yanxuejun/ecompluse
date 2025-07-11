@@ -32,20 +32,23 @@ async function searchGoogleImage(title: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { country, category, topN } = await req.json();
+    const { country, category, topN, isFastest } = await req.json();
     const categoryNum = Number(category);
     const bq = getBigQueryClient();
 
-    // 查询Top N
-    const [rows] = await bq.query({
-      query: `
+    const orderBy = isFastest ? 'ORDER BY previous_rank - rank DESC' : 'ORDER BY rank ASC';
+    const sql = `
         SELECT
           rank_id, rank, product_title, ranking_category, ranking_country, rank_timestamp, previous_rank
         FROM \`${projectId}.${datasetId}.BestSellers_TopProducts_479974220\`
         WHERE ranking_country = @country AND ranking_category = @category
-        ORDER BY previous_rank - rank DESC
+        ${orderBy}
         LIMIT @topN
-      `,
+      `;
+    console.log("BigQuery SQL:", sql);
+    console.log("BigQuery Params:", { country, category: categoryNum, topN });
+    const [rows] = await bq.query({
+      query: sql,
       params: { country, category: categoryNum, topN },
     });
 

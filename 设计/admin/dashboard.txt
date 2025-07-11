@@ -21,6 +21,10 @@ rank_improvment 是previous_rank-rank
 rank_type 填入1
 rank_order 填入排名
 
+admin/dashboard 增加一个选择框，是否是增长最快 如果选中那么按照previous_rank-rank 倒序排列
+如果没选中 去掉revious_rank-rank 这个逻辑，只按照国家和类目，正序排列。
+
+
 
 product_week_rank_enriched
 [{

@@ -5,6 +5,7 @@ export default function AdminDashboard() {
   const [country, setCountry] = useState("");
   const [category, setCategory] = useState("");
   const [topN, setTopN] = useState(10);
+  const [isFastest, setIsFastest] = useState(true);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
@@ -16,7 +17,7 @@ export default function AdminDashboard() {
       const res = await fetch("/api/admin/generate-rank", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ country, category, topN }),
+        body: JSON.stringify({ country, category, topN, isFastest }),
       });
       const data = await res.json();
       if (data.success) {
@@ -64,6 +65,17 @@ export default function AdminDashboard() {
             onChange={e => setTopN(Number(e.target.value))}
             required
           />
+        </div>
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              checked={isFastest}
+              onChange={e => setIsFastest(e.target.checked)}
+              className="mr-2"
+            />
+            是否增长最快
+          </label>
         </div>
         <button
           type="submit"
