@@ -71,7 +71,9 @@ export async function POST(req: NextRequest) {
           image_url: google.image_url,
           search_link: google.search_link,
           search_title: google.search_title,
-          rank_timestamp: row.rank_timestamp,
+          rank_timestamp: Array.isArray(row.rank_timestamp)
+            ? String(row.rank_timestamp[0])
+            : (row.rank_timestamp ? String(row.rank_timestamp) : new Date().toISOString()),
           previous_rank: Number(row.previous_rank),
           rank_improvement: Number(row.previous_rank) - Number(row.rank),
           rank_type: "1",
