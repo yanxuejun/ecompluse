@@ -76,6 +76,8 @@ export async function POST(req: NextRequest) {
           rank_improvement: Number(row.previous_rank) - Number(row.rank),
           rank_type: "1",
           rank_order: String(idx + 1),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         };
       })
     );

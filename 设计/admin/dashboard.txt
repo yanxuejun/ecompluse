@@ -24,6 +24,23 @@ rank_order 填入排名
 admin/dashboard 增加一个选择框，是否是增长最快 如果选中那么按照previous_rank-rank 倒序排列
 如果没选中 去掉revious_rank-rank 这个逻辑，只按照国家和类目，正序排列。
 
+首页下方区域，Tab切换国家（US、AU、JP、FR）
+每个国家下展示 5 个指定类目的 Top10 需求增长产品（按 rank_improvement DESC）
+
+这一栏是增长最快的，按 rank_improvement DESC 排序，LIMIT 10 。再增加一栏是按排名，按 rank 正序排列，LIMIT 10。这两个查询条件都增加一个rank_timestamp,查最近日期的. 在页面上标注出 这些数据基于那个日期
+
+166	Apparel & Accessories
+537	Baby & Toddler
+222	Electronics
+436	Furniture
+536	Home & Garden
+988	Sporting Goods
+1239	Toys & Games
+888	Vehicles & Parts
+
+国家
+
+产品标题 产品图片 
 
 
 product_week_rank_enriched

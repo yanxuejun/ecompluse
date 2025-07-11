@@ -6,6 +6,7 @@ import Features from '@/components/Features';
 import TrendPreview from '@/components/TrendPreview';
 import Footer from '@/components/Footer';
 import ConfigChecker from '@/components/ConfigChecker';
+import HomeGrowthSection from "./components/HomeGrowthSection";
 
 export default function Home() {
   return (
@@ -16,7 +17,7 @@ export default function Home() {
         <DataStats />
         <SocialProof />
         <Features />
-        <TrendPreview />
+        <HomeGrowthSection />
         {process.env.NODE_ENV === 'development' && (
           <div className="max-w-4xl mx-auto px-4 py-8">
             <ConfigChecker />
