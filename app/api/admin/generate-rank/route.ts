@@ -72,8 +72,20 @@ export async function POST(req: NextRequest) {
           search_link: google.search_link,
           search_title: google.search_title,
           rank_timestamp: Array.isArray(row.rank_timestamp)
-            ? String(row.rank_timestamp[0])
-            : (row.rank_timestamp ? String(row.rank_timestamp) : new Date().toISOString()),
+            ? (
+                row.rank_timestamp[0] instanceof Date
+                  ? row.rank_timestamp[0].toISOString()
+                  : typeof row.rank_timestamp[0] === "string"
+                    ? row.rank_timestamp[0]
+                    : ""
+              )
+            : (
+                row.rank_timestamp instanceof Date
+                  ? row.rank_timestamp.toISOString()
+                  : typeof row.rank_timestamp === "string"
+                    ? row.rank_timestamp
+                    : new Date().toISOString()
+              ),
           previous_rank: Number(row.previous_rank),
           rank_improvement: Number(row.previous_rank) - Number(row.rank),
           rank_type: "1",
