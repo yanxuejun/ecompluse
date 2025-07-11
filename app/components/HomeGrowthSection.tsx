@@ -41,6 +41,7 @@ function CategoryRow({ country, category, type, label }: { country: string; cate
       .then(res => res.json())
       .then(data => {
         setProducts(data.products || []);
+        console.log("前端收到产品数量:", (data.products || []).length, data.products || []);
         setDate(typeof data.rank_timestamp === "string" ? data.rank_timestamp.slice(0, 10) : "");
         setLoading(false);
       })

@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     const sql = `
       SELECT rank_id, rank, product_title, image_url, rank_improvement, rank_timestamp
       FROM \`${projectId}.${datasetId}.product_week_rank_enriched\`
-      WHERE country = @country AND category_id = @category AND rank_timestamp = @latestDate
+      WHERE country = @country AND category_id = @category AND DATE(rank_timestamp) = DATE(@latestDate)
       ORDER BY ${orderBy}
       LIMIT 10
     `;
@@ -49,6 +49,8 @@ export async function GET(req: NextRequest) {
       query: sql,
       params: { country, category, latestDate },
     });
+    console.log("API 返回产品数量:", rows.length);
+    console.log("API 返回产品:", rows);
     return NextResponse.json({ products: rows, rank_timestamp: latestDate });
   } catch (e: any) {
     return NextResponse.json({ error: e.message || String(e) }, { status: 500 });
