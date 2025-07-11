@@ -23,10 +23,12 @@ export default function Navbar() {
       }}
     >
       <div className="flex items-center gap-4 md:gap-8 flex-wrap">
-        <span className="text-2xl font-bold tracking-tight" style={{fontFamily: 'var(--font-family-heading)'}}>{t.navbar.logo}</span>
-        <a href="#" className="hover:underline">{t.navbar.trends}</a>
-        <a href="#" className="hover:underline">{t.navbar.rankings}</a>
-        <a href="#" className="hover:underline">{t.navbar.pricing}</a>
+        <Link href="/">
+          <span className="text-2xl font-bold tracking-tight cursor-pointer" style={{fontFamily: 'var(--font-family-heading)'}}>{t.navbar.logo}</span>
+        </Link>
+        <Link href="/explore" className="hover:underline">{t.navbar.trends}</Link>
+        <Link href="/explore" className="hover:underline">{t.navbar.rankings}</Link>
+        <Link href="/#pricing" className="hover:underline">{t.navbar.pricing}</Link>
         {isSignedIn && (
           <Link href="/dashboard" className="hover:underline">{t.navbar.dashboard}</Link>
         )}

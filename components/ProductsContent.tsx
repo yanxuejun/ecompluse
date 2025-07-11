@@ -130,34 +130,34 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
 
   return (
     <div className="p-2 md:p-8">
-      <h1 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">BigQuery 产品数据筛选</h1>
+      <h1 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">BigQuery Product Data Filter</h1>
       <div className="flex flex-col md:flex-row flex-wrap gap-2 md:gap-4 mb-4">
-        <input placeholder="国家" value={country} onChange={e => setCountry(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder="产品标题(模糊)" value={title} onChange={e => setTitle(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder="品类ID" value={category} onChange={e => setCategory(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder="品牌" value={brand} onChange={e => setBrand(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+        <input placeholder="Country" value={country} onChange={e => setCountry(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+        <input placeholder="Product Title (Fuzzy)" value={title} onChange={e => setTitle(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+        <input placeholder="Category ID" value={category} onChange={e => setCategory(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+        <input placeholder="Brand" value={brand} onChange={e => setBrand(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
         <input type="date" value={start} onChange={e => setStart(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
         <input type="date" value={end} onChange={e => setEnd(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder="最小排名" type="number" value={minRank} onChange={e => setMinRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <input placeholder="最大排名" type="number" value={maxRank} onChange={e => setMaxRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <input placeholder="最低价格" type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <input placeholder="最高价格" type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+        <input placeholder="Min Rank" type="number" value={minRank} onChange={e => setMinRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+        <input placeholder="Max Rank" type="number" value={maxRank} onChange={e => setMaxRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+        <input placeholder="Min Price" type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+        <input placeholder="Max Price" type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
         <label className="flex items-center gap-1 text-sm">
           <input type="checkbox" checked={brandIsNull} onChange={e => setBrandIsNull(e.target.checked)} />
-          只看无品牌
+          Only show no brand
         </label>
         <button
           onClick={handleQueryWithCredits}
           className="bg-blue-600 text-white font-bold text-base md:text-lg px-6 py-2 md:px-8 md:py-3 rounded-lg shadow hover:bg-blue-700 transition md:w-auto"
           disabled={loading}
         >
-          {loading ? '查询中...' : '查询'}
+          {loading ? 'Querying...' : 'Query'}
         </button>
       </div>
       {loading && (
         <div className="flex justify-center items-center my-8">
           <span className="animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-accent mr-4"></span>
-          <span className="text-accent text-lg font-bold">加载中...</span>
+          <span className="text-accent text-lg font-bold">Loading...</span>
         </div>
       )}
       {!loading && (
@@ -165,16 +165,16 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
           <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
             <thead>
               <tr className="bg-background">
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">排名</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">国家</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">品类</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">品牌</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">产品标题</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">之前排名</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">价格范围</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">相关需求度</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">之前需求度</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">时间</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">Rank</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">Country</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">Category</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">Brand</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">Product Title</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">Previous Rank</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">Price Range</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">Relative Demand</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">Previous Relative Demand</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">Time</th>
               </tr>
             </thead>
             <tbody>
@@ -211,17 +211,17 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
             >
-              上一页
+              Previous Page
             </button>
             <span>
-              第 {currentPage} / {totalPages} 页，共 {total} 条
+              Page {currentPage} / {totalPages}, Total {total} items
             </span>
             <button
               className="px-3 py-1 border rounded"
               disabled={currentPage >= totalPages}
               onClick={() => setCurrentPage(currentPage + 1)}
             >
-              下一页
+              Next Page
             </button>
             <select
               className="border px-2 py-1 ml-4"
@@ -229,7 +229,7 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
               onChange={e => handlePageSizeChange(Number(e.target.value))}
             >
               {[10, 20, 50, 100].map(size => (
-                <option key={size} value={size}>{size}条/页</option>
+                <option key={size} value={size}>{size} items/page</option>
               ))}
             </select>
           </div>

@@ -91,6 +91,7 @@ export default function SocialProof() {
 
   return (
     <section 
+      id="pricing"
       className="w-full py-12 flex flex-col items-center"
       style={{ backgroundColor: 'var(--color-background)' }}
     >

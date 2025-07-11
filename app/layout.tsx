@@ -16,8 +16,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EcomPulse - 发现下一个全球爆款",
-  description: "基于 Google 官方产品数据，洞察市场趋势，抢占销售先机",
+  title: "Global Product Trends & Analytics | EcomPulse",
+  description: "Discover trending products, analyze global market trends, and make data-driven decisions with EcomPulse. Powered by Google Merchant Center and BigQuery.",
+  keywords: "product trends, trending products, ecommerce trends, product analytics, global product trends, product research, product ranking, product insights, Google Merchant Center, BigQuery, cross-border ecommerce, data-driven product selection, EcomPulse",
+  openGraph: {
+    title: "Global Product Trends & Analytics | EcomPulse",
+    description: "Discover trending products, analyze global market trends, and make data-driven decisions with EcomPulse. Powered by Google Merchant Center and BigQuery.",
+    type: "website",
+    url: "https://www.ecompulsedata.com/",
+    images: [
+      {
+        url: "https://www.ecompulsedata.com/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "EcomPulse Open Graph Image"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Global Product Trends & Analytics | EcomPulse",
+    description: "Discover trending products, analyze global market trends, and make data-driven decisions with EcomPulse.",
+    images: ["https://www.ecompulsedata.com/og-image.png"]
+  },
+  robots: "index, follow"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
