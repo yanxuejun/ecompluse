@@ -10,19 +10,28 @@ export default function Footer() {
     >
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start px-4">
         <div className="mb-4 md:mb-0 md:w-1/2">
-          <h2 className="text-lg font-bold mb-2">Contact Customer Service</h2>
-          <div className="space-y-1 text-gray-700 text-sm">
-            <div>
-              <span className="font-semibold">Phone: </span>
-              <a href="tel:0085231122711" className="text-blue-600 underline">00852 31122711</a>
-            </div>
-            <div>
-              <span className="font-semibold">Email: </span>
-              <a href="mailto:support@ecompulsedata.com" className="text-blue-600 underline">support@ecompulsedata.com</a>
-            </div>
-            <div>
-              <span className="font-semibold">Address: </span>
-              <span>ROOM A1-13, FLOOR 3, 2-28 KWAI LOK STREET, KWAI CHUNG HONG KONG</span>
+          <div className="flex items-start space-x-4">
+            <img
+              src="/logo-footer.png"
+              alt="EcomPulseData Logo"
+              className="w-32 h-auto mt-1"
+            />
+            <div className="flex-1">
+              <h2 className="text-lg font-bold mb-2">Contact Customer Service</h2>
+              <div className="space-y-1 text-gray-700 text-sm">
+                <div>
+                  <span className="font-semibold">Phone: </span>
+                  <a href="tel:0085231122711" className="text-blue-600 underline">00852 31122711</a>
+                </div>
+                <div>
+                  <span className="font-semibold">Email: </span>
+                  <a href="mailto:support@ecompulsedata.com" className="text-blue-600 underline">support@ecompulsedata.com</a>
+                </div>
+                <div>
+                  <span className="font-semibold">Address: </span>
+                  <span>ROOM A1-13, FLOOR 3, 2-28 KWAI LOK STREET, KWAI CHUNG HONG KONG</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
