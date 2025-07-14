@@ -69,7 +69,7 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
     }
     
     if (credits <= 0) {
-      alert('积分不足！\n\n当前积分：0\n\n请升级到高级套餐获得无限积分，或等待下月积分重置。');
+      alert('credits不足！\n\n当前credits：0\n\n请升级到高级套餐获得无限credits，或等待下月credits重置。');
       return;
     }
 
@@ -80,9 +80,9 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
       
       if (!res.ok) {
         if (res.status === 400) {
-          alert('积分不足！\n\n请升级到高级套餐获得无限积分，或等待下月积分重置。');
+          alert('credits不足！\n\n请升级到高级套餐获得无限credits，或等待下月credits重置。');
         } else {
-          alert(`扣除积分失败：${data.error || '未知错误'}`);
+          alert(`扣除credits失败：${data.error || '未知错误'}`);
         }
         setLoading(false);
         return;
@@ -94,9 +94,9 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
       
       // 显示积分扣除成功提示
       if (newCredits > 0) {
-        alert(`查询成功！\n\n已扣除1积分，剩余积分：${newCredits}`);
+        alert(`查询成功！\n\n已扣除1 credits，剩余credits：${newCredits}`);
       } else {
-        alert('查询成功！\n\n已扣除1积分，积分已用完。');
+        alert('查询成功！\n\n已扣除1 credits，credits已用完。');
       }
       
       // 执行查询

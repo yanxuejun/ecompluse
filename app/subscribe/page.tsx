@@ -10,7 +10,7 @@ const plans = [
     oldPrice: 1.99,
     features: [
       "Free trial",
-      "Free Points 28",
+      "Free Credits 20",
     ],
     button: "Get EcomPulse",
     popular: false,
@@ -22,7 +22,7 @@ const plans = [
     oldPrice: 39.99,
     features: [
       "Free trial",
-      "Free Points 580",
+      "Free Credits 580",
     ],
     button: "Get EcomPulse",
     popular: true,
@@ -34,7 +34,7 @@ const plans = [
     oldPrice: 69.99,
     features: [
       "Free trial",
-      "Free Points Unlimited",
+      "Free Credits Unlimited",
     ],
     button: "Get EcomPulse",
     popular: false,

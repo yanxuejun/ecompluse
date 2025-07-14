@@ -90,7 +90,7 @@ export default function ProductsPage() {
     const res = await fetch('/api/credits/deduct', { method: 'POST' });
     const data = await res.json();
     if (!res.ok) {
-      alert(data.error || '积分不足，无法查询');
+      alert(data.error || 'credits不足，无法查询');
       setLoading(false);
       return;
     }
