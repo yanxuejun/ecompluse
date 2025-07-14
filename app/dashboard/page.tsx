@@ -6,6 +6,7 @@ import ProductsContent from '../../components/ProductsContent';
 import ProductsExplorerContent from '../../components/ProductsExplorerContent';
 import Footer from '../../components/Footer';
 import Navbar from '../../components/Navbar';
+import { useI18n } from '@/lib/i18n/context';
 
 const MENU_ITEMS = [
   { key: 'all', label: 'All Data Query' },
@@ -19,6 +20,7 @@ export default function DashboardPage() {
   const [menuCollapsed, setMenuCollapsed] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState('all');
   const router = useRouter();
+  const { t, language } = useI18n();
 
   // 用户初始化由 ClientWrapper 处理，这里不需要重复调用
 
@@ -75,15 +77,15 @@ export default function DashboardPage() {
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <div className="flex items-center gap-2">
                 <span className="text-lg font-bold text-blue-900">
-                  Credits: {tier === 'premium' ? 'Unlimited' : credits !== null ? credits : '--'}
+                  {language === 'zh' ? 'credits：' : 'Credits: '}{tier === 'premium' ? (language === 'zh' ? '无限' : 'Unlimited') : credits !== null ? credits : '--'}
                 </span>
                 {credits !== null && credits <= 5 && tier !== 'premium' && (
                   <span className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                    Low Credits
+                    {language === 'zh' ? 'credits不足' : 'Low Credits'}
                   </span>
                 )}
               </div>
-              <span className="text-lg font-bold text-blue-900">Plan: {tier || '--'}</span>
+              <span className="text-lg font-bold text-blue-900">{language === 'zh' ? '套餐：' : 'Plan: '}{tier || '--'}</span>
             </div>
             {/* 右侧：用户信息和返回首页按钮 */}
             <div className="flex flex-col sm:flex-row gap-4 items-center">
@@ -92,7 +94,7 @@ export default function DashboardPage() {
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition font-semibold"
                 onClick={() => router.push('/')}
               >
-                Back to Home
+                {language === 'zh' ? '返回首页' : 'Back to Home'}
               </button>
             </div>
           </div>

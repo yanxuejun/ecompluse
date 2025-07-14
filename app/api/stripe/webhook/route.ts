@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { headers } from "next/headers";
 // 1. 引入 BigQuery 工具
-import { updateUserProfileCreditsAndTier } from '@/lib/bigquery';
+import { updateUserProfileCreditsAndTier, getUserProfile } from '@/lib/bigquery';
 
 // 检查环境变量
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -45,10 +45,29 @@ export async function POST(req: NextRequest) {
         // 获取 Clerk userId 和 tier
         const userId = session.client_reference_id || session.metadata?.userId;
         const tier = session.metadata?.tier;
+        if (!userId || !tier) break;
+        // 获取当前用户套餐
+        const userProfile = await getUserProfile(userId);
+        if (!userProfile) break;
+        const currentTier = userProfile.tier;
+        // 禁止Premium降级
+        if (currentTier === 'premium' && (tier === 'standard' || tier === 'starter')) {
+          console.log(`[STRIPE] 用户 ${userId} 当前为Premium，禁止降级到${tier}`);
+          break;
+        }
         let credits: number | null = 20;
-        if (tier === 'standard') credits = 580;
-        if (tier === 'premium') credits = null;
-        if (userId && tier) {
+        if (tier === 'standard') {
+          credits = 580;
+        }
+        if (tier === 'premium') {
+          credits = 999999;
+        }
+        // 只有升级或同级才允许更新
+        if (
+          (currentTier === 'starter' && (tier === 'standard' || tier === 'premium')) ||
+          (currentTier === 'standard' && tier === 'premium') ||
+          (currentTier === tier) // 允许同级覆盖
+        ) {
           await updateUserProfileCreditsAndTier(userId, credits, tier);
         }
         break;

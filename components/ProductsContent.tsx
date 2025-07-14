@@ -1,8 +1,10 @@
 "use client";
 import React, { useState, useCallback } from 'react';
 import { countryGoogleShoppingMap } from "@/lib/country-google-shopping";
+import { useI18n } from '@/lib/i18n/context';
 
 export default function ProductsContent({ credits, setCredits }: { credits: number|null, setCredits: (n: number|null)=>void }) {
+  const { t, language } = useI18n();
   // Filter states
   const [country, setCountry] = useState('');
   const [title, setTitle] = useState('');
@@ -64,12 +66,12 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
   const handleQueryWithCredits = async () => {
     // 检查积分是否足够
     if (credits === null) {
-      alert('正在加载用户信息，请稍后再试');
+      alert(language === 'zh' ? '正在加载用户信息，请稍后再试' : 'Loading user info, please try again later');
       return;
     }
     
     if (credits <= 0) {
-      alert('credits不足！\n\n当前credits：0\n\n请升级到高级套餐获得无限credits，或等待下月credits重置。');
+      alert(language === 'zh' ? 'credits不足！\n\n当前credits：0\n\n请升级到高级套餐获得无限credits，或等待下月credits重置。' : 'Insufficient credits!\n\nCurrent credits: 0\n\nPlease upgrade to premium for unlimited credits, or wait for next month reset.');
       return;
     }
 
@@ -80,9 +82,9 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
       
       if (!res.ok) {
         if (res.status === 400) {
-          alert('credits不足！\n\n请升级到高级套餐获得无限credits，或等待下月credits重置。');
+          alert(language === 'zh' ? 'credits不足！\n\n请升级到高级套餐获得无限credits，或等待下月credits重置。' : 'Insufficient credits!\n\nPlease upgrade to premium for unlimited credits, or wait for next month reset.');
         } else {
-          alert(`扣除credits失败：${data.error || '未知错误'}`);
+          alert((language === 'zh' ? '扣除credits失败：' : 'Failed to deduct credits: ') + (data.error || (language === 'zh' ? '未知错误' : 'Unknown error')));
         }
         setLoading(false);
         return;
@@ -94,15 +96,15 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
       
       // 显示积分扣除成功提示
       if (newCredits > 0) {
-        alert(`查询成功！\n\n已扣除1 credits，剩余credits：${newCredits}`);
+        alert(language === 'zh' ? `查询成功！\n\n已扣除1 credits，剩余credits：${newCredits}` : `Query successful!\n\n1 credit deducted, remaining credits: ${newCredits}`);
       } else {
-        alert('查询成功！\n\n已扣除1 credits，credits已用完。');
+        alert(language === 'zh' ? '查询成功！\n\n已扣除1 credits，credits已用完。' : 'Query successful!\n\n1 credit deducted, credits used up.');
       }
       
       // 执行查询
       await handleSearch(1, pageSize);
     } catch (error) {
-      alert('网络错误，请稍后重试');
+      alert(language === 'zh' ? '网络错误，请稍后重试' : 'Network error, please try again later');
       console.error('Query error:', error);
     } finally {
       setLoading(false);
@@ -151,13 +153,13 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
           className="bg-blue-600 text-white font-bold text-base md:text-lg px-6 py-2 md:px-8 md:py-3 rounded-lg shadow hover:bg-blue-700 transition md:w-auto"
           disabled={loading}
         >
-          {loading ? 'Querying...' : 'Query'}
+          {loading ? (language === 'zh' ? '查询中...' : 'Querying...') : (language === 'zh' ? '查询' : 'Query')}
         </button>
       </div>
       {loading && (
         <div className="flex justify-center items-center my-8">
           <span className="animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-accent mr-4"></span>
-          <span className="text-accent text-lg font-bold">Loading...</span>
+          <span className="text-accent text-lg font-bold">{language === 'zh' ? '加载中...' : 'Loading...'}</span>
         </div>
       )}
       {!loading && (
