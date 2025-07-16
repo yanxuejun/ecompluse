@@ -13,6 +13,37 @@ const MENU_ITEMS = [
   { key: 'hot', label: 'Hot Products by Category' },
 ];
 
+function CancelSubscriptionButton({ tier, onCancelSuccess }: { tier: string, onCancelSuccess: () => void }) {
+  const { language } = useI18n();
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  if (tier === 'free' || tier === 'starter') return null;
+  const handleCancel = async () => {
+    if (!window.confirm(language === 'zh' ? '确定要取消订阅吗？' : 'Are you sure you want to cancel your subscription?')) return;
+    setLoading(true);
+    const res = await fetch('/api/stripe/cancel-subscription', { method: 'POST' });
+    setLoading(false);
+    if (res.ok) {
+      setSuccess(true);
+      onCancelSuccess();
+    } else {
+      alert(language === 'zh' ? '取消失败，请重试' : 'Cancel failed, please try again');
+    }
+  };
+  return (
+    <div className="mt-2">
+      <button
+        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition font-semibold"
+        onClick={handleCancel}
+        disabled={loading}
+      >
+        {loading ? (language === 'zh' ? '正在取消...' : 'Cancelling...') : (language === 'zh' ? '取消订阅' : 'Cancel Subscription')}
+      </button>
+      {success && <div className="text-green-600 mt-2">{language === 'zh' ? '已提交取消，订阅将在本周期结束后失效。' : 'Cancellation submitted. Your subscription will end at the period end.'}</div>}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { user, isSignedIn, isLoaded } = useUser();
   const [credits, setCredits] = useState<number | null>(null);
@@ -74,18 +105,18 @@ export default function DashboardPage() {
           {/* 头部区域 */}
           <div className="flex flex-col sm:flex-row items-center justify-between bg-white rounded-lg shadow p-6 mb-8 gap-4">
             {/* 左侧：Credits 和 Plan */}
-            <div className="flex flex-col sm:flex-row gap-4 items-center">
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold text-blue-900">
-                  {language === 'zh' ? 'credits：' : 'Credits: '}{tier === 'premium' ? (language === 'zh' ? '无限' : 'Unlimited') : credits !== null ? credits : '--'}
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-blue-900">
+                {language === 'zh' ? 'credits：' : 'Credits: '}{tier === 'premium' ? (language === 'zh' ? '无限' : 'Unlimited') : credits !== null ? credits : '--'}
+              </span>
+              {credits !== null && credits <= 5 && tier !== 'premium' && (
+                <span className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                  {language === 'zh' ? 'credits不足' : 'Low Credits'}
                 </span>
-                {credits !== null && credits <= 5 && tier !== 'premium' && (
-                  <span className="text-sm bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                    {language === 'zh' ? 'credits不足' : 'Low Credits'}
-                  </span>
-                )}
-              </div>
+              )}
               <span className="text-lg font-bold text-blue-900">{language === 'zh' ? '套餐：' : 'Plan: '}{tier || '--'}</span>
+              {/* 取消订阅按钮紧跟在 Credits/Plan 后面 */}
+              <CancelSubscriptionButton tier={tier} onCancelSuccess={() => { setTier('free'); setCredits(0); }} />
             </div>
             {/* 右侧：用户信息和返回首页按钮 */}
             <div className="flex flex-col sm:flex-row gap-4 items-center">

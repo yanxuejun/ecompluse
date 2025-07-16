@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { auth } from "@clerk/nextjs/server";
 
 // 检查环境变量
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -13,25 +14,29 @@ const stripe = process.env.STRIPE_SECRET_KEY
     })
   : null;
 
-// 价格映射 - 使用实际的价格 ID 或动态创建
-const priceMap: Record<string, { amount: number; currency: string; name: string }> = {
-  starter: { amount: 0, currency: "usd", name: "Starter Plan" },
-  standard: { amount: 2999, currency: "usd", name: "Standard Plan" },
-  premium: { amount: 4999, currency: "usd", name: "Premium Plan" },
+// 价格映射 - 使用实际的 Stripe 价格 ID
+const priceMap: Record<string, { priceId: string; name: string }> = {
+  starter: { priceId: process.env.STRIPE_PRICE_ID_STARTER!, name: 'Starter Plan' },
+  standard: { priceId: process.env.STRIPE_PRICE_ID_STANDARD!, name: 'Standard Plan' },
+  premium: { priceId: process.env.STRIPE_PRICE_ID_PREMIUM!, name: 'Premium Plan' },
 };
 
 export async function POST(req: NextRequest) {
   try {
-  const { tier } = await req.json();
+    const { userId } = await auth();
+    const { tier } = await req.json();
     
+    if (!userId) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
     if (!tier) {
       return NextResponse.json({ error: "Tier is required" }, { status: 400 });
     }
     
     const priceInfo = priceMap[tier];
     if (!priceInfo) {
-    return NextResponse.json({ error: "Invalid tier" }, { status: 400 });
-  }
+      return NextResponse.json({ error: "Invalid tier" }, { status: 400 });
+    }
 
     if (!stripe || !process.env.STRIPE_SECRET_KEY) {
       return NextResponse.json({ 
@@ -39,23 +44,21 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    // 动态创建产品而不是使用预定义的价格 ID
+    // 创建订阅 Checkout Session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
-          price_data: {
-            currency: priceInfo.currency,
-            product_data: {
-              name: priceInfo.name,
-              description: `One-time payment for ${priceInfo.name}`,
-            },
-            unit_amount: priceInfo.amount, // 金额以分为单位
-          },
+          price: priceInfo.priceId,
           quantity: 1,
         },
       ],
-      mode: "payment",
+      mode: "subscription",
+      client_reference_id: userId,
+      metadata: {
+        userId,
+        tier,
+      },
       success_url: `${req.nextUrl.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.nextUrl.origin}/payment-cancel`,
     });

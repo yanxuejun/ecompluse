@@ -43,12 +43,25 @@ export async function deductUserCredit(userId: string) {
   await bigquery.query(options);
 }
 
-export async function updateUserProfileCreditsAndTier(userId: string, credits: number|null, tier: string) {
+export async function updateUserProfileCreditsAndTier(userId: string, credits: number|null, tier: string, subscriptionId?: string) {
+  let query = `
+    UPDATE ${tableRef}
+    SET credits = @credits, tier = @tier, updatedAt = CURRENT_TIMESTAMP()`;
+  const params: any = { userId, credits, tier };
+  if (subscriptionId) {
+    query += `, subscriptionId = @subscriptionId`;
+    params.subscriptionId = subscriptionId;
+  }
+  query += ` WHERE id = @userId`;
+  await bigquery.query({ query, params });
+}
+
+export async function updateUserProfileSubscriptionId(userId: string, subscriptionId: string) {
   const query = `
     UPDATE ${tableRef}
-    SET credits = @credits, tier = @tier, updatedAt = CURRENT_TIMESTAMP()
+    SET subscriptionId = @subscriptionId, updatedAt = CURRENT_TIMESTAMP()
     WHERE id = @userId
   `;
-  const options = { query, params: { userId, credits, tier } };
+  const options = { query, params: { userId, subscriptionId } };
   await bigquery.query(options);
 } 
