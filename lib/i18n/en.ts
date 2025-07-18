@@ -31,7 +31,7 @@ export const en = {
       value: "4K+"
     },
     products: {
-      title: "Product Data",
+      title: "BigQuery Product Data Filter",
       description: "Massive Product Information",
       value: "Billion+"
     },
@@ -40,6 +40,53 @@ export const en = {
       description: "Comprehensive Brand Coverage",
       value: "80K+"
     }
+  },
+
+  // Product Data Filter Page (move from dataStats.products)
+  products: {
+    title: "BigQuery Product Data Filter",
+    filters: {
+      country: "Country",
+      title: "Product Title (Fuzzy)",
+      category: "Category ID",
+      brand: "Brand",
+      minRank: "Min Rank",
+      maxRank: "Max Rank",
+      minPrice: "Min Price",
+      maxPrice: "Max Price",
+      onlyNoBrand: "Only show no brand"
+    },
+    querying: "Querying...",
+    query: "Query",
+    loading: "Loading...",
+    table: {
+      rank: "Rank",
+      country: "Country",
+      category: "Category",
+      brand: "Brand",
+      productTitle: "Product Title",
+      previousRank: "Previous Rank",
+      priceRange: "Price Range",
+      relativeDemand: "Relative Demand",
+      previousRelativeDemand: "Previous Relative Demand",
+      rankTimestamp: "Rank Timestamp",
+      time: "Time"
+    },
+    creditsLoading: "Loading user info, please try again later",
+    creditsNotEnough: "Insufficient credits! Please upgrade to premium for unlimited credits, or wait for next month reset.",
+    currentCredits: "Current credits",
+    creditsDeductFailed: "Failed to deduct credits: ",
+    unknownError: "Unknown error",
+    querySuccess: "Query successful!",
+    creditsDeducted: "Credits deducted",
+    creditsUsedUp: "credits used up.",
+    networkError: "Network error, please try again later",
+    prevPage: "Previous Page",
+    nextPage: "Next Page",
+    page: "Page",
+    total: "Total",
+    items: "items",
+    itemsPerPage: "items/page"
   },
 
   // Social Proof Section

@@ -9,7 +9,7 @@ import Navbar from '../../components/Navbar';
 import { useI18n } from '@/lib/i18n/context';
 
 const MENU_ITEMS = [
-  { key: 'all', label: 'All Data Query' },
+  { key: 'all', label: 'All Datas Query' },
   { key: 'hot', label: 'Hot Products by Category' },
 ];
 
@@ -81,8 +81,8 @@ export default function DashboardPage() {
     if (selectedMenu === 'all') {
       return (
         <div>
-          <h2 className="text-xl font-semibold mb-4">All Data Query</h2>
-          <a href="/products" className="inline-block text-accent underline hover:underline">Go to All Data Query Page →</a>
+          <h2 className="text-xl font-semibold mb-4">All Datas Query</h2>
+          <a href="/products" className="inline-block text-accent underline hover:underline">Go to All Datas Query Page →</a>
         </div>
       );
     }

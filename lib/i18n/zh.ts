@@ -31,7 +31,7 @@ export const zh = {
       value: "4K+"
     },
     products: {
-      title: "产品数据",
+      title: "BigQuery 产品数据筛选",
       description: "海量产品信息",
       value: "亿级"
     },
@@ -125,6 +125,52 @@ export const zh = {
       pageInfo: "第 {current} / {total} 页（共 {count} 条）",
       pageSize: "{size} 条/页"
     }
+  },
+
+  // 产品数据筛选页面
+  products: {
+    title: "BigQuery 产品数据筛选",
+    filters: {
+      country: "国家",
+      title: "产品标题(模糊)",
+      category: "品类ID",
+      brand: "品牌",
+      minRank: "最小排名",
+      maxRank: "最大排名",
+      minPrice: "最低价格",
+      maxPrice: "最高价格",
+      onlyNoBrand: "只看无品牌"
+    },
+    querying: "查询中...",
+    query: "查询",
+    loading: "加载中...",
+    table: {
+      rank: "排名",
+      country: "国家",
+      category: "品类",
+      brand: "品牌",
+      productTitle: "产品标题",
+      previousRank: "之前排名",
+      priceRange: "价格范围",
+      relativeDemand: "相关需求度",
+      previousRelativeDemand: "之前需求度",
+      rankTimestamp: "排名时间"
+    },
+    creditsLoading: "正在加载用户信息，请稍后再试",
+    creditsNotEnough: "credits不足！请升级到高级套餐获得无限credits，或等待下月credits重置。",
+    currentCredits: "当前credits",
+    creditsDeductFailed: "扣除credits失败：",
+    unknownError: "未知错误",
+    querySuccess: "查询成功！",
+    creditsDeducted: "已扣除credits",
+    creditsUsedUp: "credits已用完。",
+    networkError: "网络错误，请稍后重试",
+    prevPage: "上一页",
+    nextPage: "下一页",
+    page: "第",
+    total: "共",
+    items: "条",
+    itemsPerPage: "条/页"
   },
 
   // 底部CTA区

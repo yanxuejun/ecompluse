@@ -20,14 +20,14 @@ export async function GET(req: NextRequest) {
   const pageSize = Number(searchParams.get('pageSize') || 10);
 
   // 构建WHERE条件
-  let where = 'WHERE 1=1';
+  let where = 'WHERE 1=1 ';
   if (country) where += ` AND ranking_country = @country`;
   if (title) where += ` AND EXISTS (SELECT 1 FROM UNNEST(product_title) AS t WHERE t.name LIKE @title)`;
   if (category) where += ` AND ranking_category = @category`;
   if (brand) where += ` AND brand = @brand`;
   if (brandIsNull === 'true') where += ` AND (brand IS NULL OR brand = '')`;
-  if (start) where += ` AND rank_timestamp >= @start`;
-  if (end) where += ` AND rank_timestamp <= @end`;
+  if (start) where += ` AND DATE(rank_timestamp) >= @start`;
+  if (end) where += ` AND DATE(rank_timestamp) <= @end`;
   if (minRank) where += ` AND rank >= @minRank`;
   if (maxRank) where += ` AND rank <= @maxRank`;
   if (minPrice) where += ` AND price_range.min >= @minPrice`;
@@ -53,29 +53,63 @@ export async function GET(req: NextRequest) {
       price_range, 
       relative_demand, 
       previous_relative_demand, 
-      rank_timestamp
+      rank_timestamp,
+      gtins
     FROM \`new_gmc_data.BestSellers_TopProducts_Optimized\`
     ${where}
     ORDER BY rank ASC
     LIMIT @pageSize OFFSET @offset
   `;
 
-  // 参数
+  // 构建参数和类型，只包含有值的字段
   const params: any = {
-    country: country || null,
-    title: title ? `%${title}%` : null,
-    category: category ? Number(category) : null,
-    brand: brand || null,
-    brandIsNull: brandIsNull === 'true',
-    start: start || null,
-    end: end || null,
-    minRank: minRank ? Number(minRank) : null,
-    maxRank: maxRank ? Number(maxRank) : null,
-    minPrice: minPrice ? Number(minPrice) : null,
-    maxPrice: maxPrice ? Number(maxPrice) : null,
+    country,
+    start,
     pageSize,
     offset: (page - 1) * pageSize,
   };
+  const types: any = {
+    country: 'STRING',
+    start: 'STRING',
+    pageSize: 'INT64',
+    offset: 'INT64',
+  };
+  if (title) {
+    params.title = `%${title}%`;
+    types.title = 'STRING';
+  }
+  if (category) {
+    params.category = Number(category);
+    types.category = 'INT64';
+  }
+  if (brand) {
+    params.brand = brand;
+    types.brand = 'STRING';
+  }
+  if (brandIsNull === 'true') {
+    params.brandIsNull = true;
+    types.brandIsNull = 'BOOL';
+  }
+  if (end) {
+    params.end = end;
+    types.end = 'STRING';
+  }
+  if (minRank) {
+    params.minRank = Number(minRank);
+    types.minRank = 'INT64';
+  }
+  if (maxRank) {
+    params.maxRank = Number(maxRank);
+    types.maxRank = 'INT64';
+  }
+  if (minPrice) {
+    params.minPrice = Number(minPrice);
+    types.minPrice = 'NUMERIC';
+  }
+  if (maxPrice) {
+    params.maxPrice = Number(maxPrice);
+    types.maxPrice = 'NUMERIC';
+  }
 
   console.log('🔍 BigQuery Sync API - Count Query:');
   console.log(countSql);
@@ -83,31 +117,16 @@ export async function GET(req: NextRequest) {
   console.log(dataSql);
   console.log('📊 Query Parameters:', params);
 
-  const types: any = {
-    country: 'STRING',
-    title: 'STRING',
-    category: 'INT64',
-    brand: 'STRING',
-    brandIsNull: 'BOOL',
-    start: 'TIMESTAMP',
-    end: 'TIMESTAMP',
-    minRank: 'INT64',
-    maxRank: 'INT64',
-    minPrice: 'NUMERIC',
-    maxPrice: 'NUMERIC',
-    pageSize: 'INT64',
-    offset: 'INT64',
-  };
-
   // 连接BigQuery
   const credentials = JSON.parse(process.env.GCP_SERVICE_ACCOUNT_JSON!);
   const bigquery = new BigQuery({ projectId: credentials.project_id, credentials });
 
   // 打印最终SQL和参数
-  console.log('=== BigQuery 查询SQL ===');
+  console.log('=== BigQuery 最终查询SQL ===');
   console.log('Count SQL:', countSql);
   console.log('Data SQL:', dataSql);
   console.log('参数:', params);
+  console.log('参数类型:', types);
   console.log('=======================');
 
   // 查询总数
@@ -126,6 +145,7 @@ export async function GET(req: NextRequest) {
     types,
     location: 'US',
   });
+  console.log('BigQuery 返回数据:', dataRows);
 
   return NextResponse.json({ data: dataRows, total });
 }
