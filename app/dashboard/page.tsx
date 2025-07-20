@@ -177,7 +177,7 @@ export default function DashboardPage() {
             <div className="flex-1 bg-white rounded-lg shadow p-6 min-h-[400px] text-blue-900 ml-[-1px]">
               {selectedMenu === 'all' && <ProductsContent credits={credits} setCredits={setCredits} />}
               {selectedMenu === 'hot' && <ProductsExplorerContent credits={credits} setCredits={setCredits} />}
-              {selectedMenu === 'growth' && <TopGrowthProducts />}
+              {selectedMenu === 'growth' && <TopGrowthProducts credits={credits} setCredits={setCredits} />}
             </div>
           </div>
         </div>

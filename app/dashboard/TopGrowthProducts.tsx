@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { countryGoogleShoppingMap } from '@/lib/country-google-shopping';
 
-export default function TopGrowthProducts() {
+export default function TopGrowthProducts({ credits, setCredits }: { credits: number|null, setCredits: (n: number|null)=>void }) {
   const { t, language } = useI18n();
   const [country, setCountry] = useState('');
   const [category, setCategory] = useState('');
@@ -43,19 +43,63 @@ export default function TopGrowthProducts() {
       params.append('page', String(page));
       params.append('pageSize', String(size));
       const res = await fetch(`/api/admin/growth-products?${params.toString()}`);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Query failed');
+      }
       const json = await res.json();
       if (json.success) {
         setData(json.data || []);
         setTotal(json.total || 0);
-      } else setError(json.error||'Query failed');
-    } catch (e:any) { setError(e.message); setData([]); }
+        setError('');
+      } else {
+        setError(json.error || 'Query failed');
+      }
+    } catch (e:any) {
+      setError(e.message || 'Network error');
+      setData([]);
+    }
     setLoading(false);
   }
 
-  function handleQuery(e: React.FormEvent) {
+  async function handleQueryWithCredits(e: React.FormEvent) {
     e.preventDefault();
-    setCurrentPage(1);
-    fetchData(1, pageSize);
+    if (credits === null) {
+      alert(t.products.creditsLoading);
+      return;
+    }
+    if (credits <= 0) {
+      alert(t.products.creditsNotEnough + `\n\n${t.products.currentCredits}: 0`);
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/credits/deduct', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 400) {
+          alert(t.products.creditsNotEnough);
+        } else {
+          alert(t.products.creditsDeductFailed + (data.error || t.products.unknownError));
+        }
+        setLoading(false);
+        return;
+      }
+      const newCredits = data.remainingCredits || (typeof credits === 'number' ? credits - 1 : credits);
+      setCredits(newCredits);
+      if (newCredits > 0) {
+        alert(t.products.querySuccess + `\n\n${t.products.creditsDeducted} 1, ${t.products.currentCredits}: ${newCredits}`);
+      } else {
+        alert(t.products.querySuccess + `\n\n${t.products.creditsDeducted} 1, ${t.products.creditsUsedUp}`);
+      }
+      await fetchData(1, pageSize);
+      setCurrentPage(1);
+    } catch (error: any) {
+      // 只在真正网络错误时弹窗
+      alert(error?.message || t.products.networkError);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const totalPages = Math.ceil(total / pageSize) || 1;
@@ -75,7 +119,7 @@ export default function TopGrowthProducts() {
   return (
     <div className="p-2 md:p-8">
       <h2 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">{language==='zh'?'热门产品按增长排名':'Top Growth Products'}</h2>
-      <form className="flex flex-col md:flex-row flex-wrap gap-2 md:gap-4 mb-4" onSubmit={handleQuery}>
+      <form className="flex flex-col md:flex-row flex-wrap gap-2 md:gap-4 mb-4" onSubmit={handleQueryWithCredits}>
         <input className="border px-2 py-1 w-full md:w-auto text-sm" placeholder={language==='zh'?'国家':'Country'} value={country} onChange={e=>setCountry(e.target.value)} />
         <input className="border px-2 py-1 w-full md:w-auto text-sm" placeholder={language==='zh'?'类目':'Category'} value={category} onChange={e=>setCategory(e.target.value)} />
         <input className="border px-2 py-1 w-full md:w-auto text-sm" placeholder={language==='zh'?'品牌':'Brand'} value={brand} onChange={e=>setBrand(e.target.value)} />
@@ -94,6 +138,7 @@ export default function TopGrowthProducts() {
           <span className="text-accent text-lg font-bold">{t.products.loading}</span>
         </div>
       )}
+      {error && <div className="text-red-600 my-2">{error}</div>}
       {!loading && (
         <div className="bg-white rounded-lg shadow p-2 md:p-6 overflow-x-auto">
           <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">

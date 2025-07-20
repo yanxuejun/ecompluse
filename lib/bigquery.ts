@@ -24,12 +24,12 @@ export async function getUserProfile(userId: string) {
   return rows[0] || null;
 }
 
-export async function createUserProfile(userId: string) {
+export async function createUserProfile(userId: string, name: string, email: string) {
   const query = `
-    INSERT INTO ${tableRef} (id, credits, tier, createdAt, updatedAt)
-    VALUES (@userId, 20, 'starter', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP())
+    INSERT INTO ${tableRef} (id, credits, tier, createdAt, updatedAt, name, email)
+    VALUES (@userId, 20, 'starter', CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP(), @name, @email)
   `;
-  const options = { query, params: { userId } };
+  const options = { query, params: { userId, name, email } };
   await bigquery.query(options);
 }
 
