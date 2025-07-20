@@ -1,0 +1,172 @@
+import React, { useState, useEffect } from 'react';
+import { useI18n } from '@/lib/i18n/context';
+import { countryGoogleShoppingMap } from '@/lib/country-google-shopping';
+
+export default function TopGrowthProducts() {
+  const { t, language } = useI18n();
+  const [country, setCountry] = useState('');
+  const [category, setCategory] = useState('');
+  const [brand, setBrand] = useState('');
+  const [noBrand, setNoBrand] = useState(false);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<any[]>([]);
+  const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [minRank, setMinRank] = useState('');
+  const [maxRank, setMaxRank] = useState('');
+  const [minRelDemand, setMinRelDemand] = useState('');
+  const [maxRelDemand, setMaxRelDemand] = useState('');
+
+  useEffect(() => {
+    fetchData(currentPage, pageSize);
+    // eslint-disable-next-line
+  }, [currentPage, pageSize]);
+
+  async function fetchData(page = 1, size = 20) {
+    setLoading(true); setError('');
+    try {
+      const params = new URLSearchParams();
+      if (country) params.append('country', country);
+      if (category) params.append('category', category);
+      if (brand) params.append('brand', brand);
+      if (noBrand) params.append('noBrand', 'true');
+      if (minPrice) params.append('minPrice', minPrice);
+      if (maxPrice) params.append('maxPrice', maxPrice);
+      if (minRank) params.append('minRank', minRank);
+      if (maxRank) params.append('maxRank', maxRank);
+      if (minRelDemand) params.append('minRelDemand', minRelDemand);
+      if (maxRelDemand) params.append('maxRelDemand', maxRelDemand);
+      params.append('page', String(page));
+      params.append('pageSize', String(size));
+      const res = await fetch(`/api/admin/growth-products?${params.toString()}`);
+      const json = await res.json();
+      if (json.success) {
+        setData(json.data || []);
+        setTotal(json.total || 0);
+      } else setError(json.error||'Query failed');
+    } catch (e:any) { setError(e.message); setData([]); }
+    setLoading(false);
+  }
+
+  function handleQuery(e: React.FormEvent) {
+    e.preventDefault();
+    setCurrentPage(1);
+    fetchData(1, pageSize);
+  }
+
+  const totalPages = Math.ceil(total / pageSize) || 1;
+
+  const getProductTitle = (row: any) => {
+    // 支持字符串、null、数组等多种情况
+    if (!row.product_title) return '-';
+    if (typeof row.product_title === 'string') return row.product_title || '-';
+    if (Array.isArray(row.product_title)) {
+      const zh = row.product_title.find((t: any) => t.locale === 'zh-CN');
+      const en = row.product_title.find((t: any) => t.locale === 'en');
+      return zh?.name || en?.name || row.product_title[0]?.name || '-';
+    }
+    return '-';
+  };
+
+  return (
+    <div className="p-2 md:p-8">
+      <h2 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">{language==='zh'?'热门产品按增长排名':'Top Growth Products'}</h2>
+      <form className="flex flex-col md:flex-row flex-wrap gap-2 md:gap-4 mb-4" onSubmit={handleQuery}>
+        <input className="border px-2 py-1 w-full md:w-auto text-sm" placeholder={language==='zh'?'国家':'Country'} value={country} onChange={e=>setCountry(e.target.value)} />
+        <input className="border px-2 py-1 w-full md:w-auto text-sm" placeholder={language==='zh'?'类目':'Category'} value={category} onChange={e=>setCategory(e.target.value)} />
+        <input className="border px-2 py-1 w-full md:w-auto text-sm" placeholder={language==='zh'?'品牌':'Brand'} value={brand} onChange={e=>setBrand(e.target.value)} />
+        <label className="flex items-center gap-1 text-sm"><input type="checkbox" checked={noBrand} onChange={e=>setNoBrand(e.target.checked)} />{language==='zh'?'只看无品牌':'Only No Brand'}</label>
+        <input className="border px-2 py-1 w-full md:w-24 text-sm" placeholder={language==='zh'?'最低价':'Min Price'} value={minPrice} onChange={e=>setMinPrice(e.target.value)} />
+        <input className="border px-2 py-1 w-full md:w-24 text-sm" placeholder={language==='zh'?'最高价':'Max Price'} value={maxPrice} onChange={e=>setMaxPrice(e.target.value)} />
+        <input className="border px-2 py-1 w-full md:w-20 text-sm" placeholder={language==='zh'?'最小排名':'Min Rank'} value={minRank} onChange={e=>setMinRank(e.target.value)} />
+        <input className="border px-2 py-1 w-full md:w-20 text-sm" placeholder={language==='zh'?'最大排名':'Max Rank'} value={maxRank} onChange={e=>setMaxRank(e.target.value)} />
+        <input className="border px-2 py-1 w-full md:w-24 text-sm" placeholder={language==='zh'?'最小需求':'Min Rel. Demand'} value={minRelDemand} onChange={e=>setMinRelDemand(e.target.value)} />
+        <input className="border px-2 py-1 w-full md:w-24 text-sm" placeholder={language==='zh'?'最大需求':'Max Rel. Demand'} value={maxRelDemand} onChange={e=>setMaxRelDemand(e.target.value)} />
+        <button type="submit" className="bg-blue-600 text-white font-bold text-base md:text-lg px-6 py-2 md:px-8 md:py-3 rounded-lg shadow hover:bg-blue-700 transition md:w-auto">{language==='zh'?'查询':'Query'}</button>
+      </form>
+      {loading && (
+        <div className="flex justify-center items-center my-8">
+          <span className="animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-accent mr-4"></span>
+          <span className="text-accent text-lg font-bold">{t.products.loading}</span>
+        </div>
+      )}
+      {!loading && (
+        <div className="bg-white rounded-lg shadow p-2 md:p-6 overflow-x-auto">
+          <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
+            <thead>
+              <tr className="bg-background">
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rank}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.country}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.category}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.brand}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.productTitle}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRank}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.priceRange}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.relativeDemand}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rankTimestamp}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((row, i) => {
+                const countryCode = row.ranking_country;
+                const { gl, hl } = countryGoogleShoppingMap[countryCode] || { gl: 'us', hl: 'en' };
+                const productTitle = getProductTitle(row);
+                const searchUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productTitle)}&gl=${gl}&hl=${hl}`;
+                return (
+                  <tr key={row.rank_id || i} className="bg-background rounded-lg shadow border-b border-gray-100">
+                    <td className="px-2 md:px-3 py-1 md:py-2 font-bold text-primary">{row.rank}</td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">{row.ranking_country}</td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">{row.ranking_category}</td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">{row.brand}</td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">
+                      <a href={searchUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {productTitle}
+                      </a>
+                    </td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">{row.previous_rank ?? ''}</td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">{row.price_range}</td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">{row.relative_demand}</td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">{row.rank_timestamp}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          {/* 分页控件 */}
+          <div className="flex gap-2 mt-4 items-center">
+            <button
+              className="px-3 py-1 border rounded"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
+              {t.products.prevPage}
+            </button>
+            <span>
+              {t.products.page} {currentPage} / {totalPages}, {t.products.total} {total} {t.products.items}
+            </span>
+            <button
+              className="px-3 py-1 border rounded"
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
+              {t.products.nextPage}
+            </button>
+            <select
+              className="border px-2 py-1 ml-4"
+              value={pageSize}
+              onChange={e => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
+            >
+              {[10, 20, 50, 100].map(size => (
+                <option key={size} value={size}>{size} {t.products.itemsPerPage}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+} 

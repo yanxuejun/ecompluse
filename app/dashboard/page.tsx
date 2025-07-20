@@ -7,10 +7,12 @@ import ProductsExplorerContent from '../../components/ProductsExplorerContent';
 import Footer from '../../components/Footer';
 import Navbar from '../../components/Navbar';
 import { useI18n } from '@/lib/i18n/context';
+import TopGrowthProducts from './TopGrowthProducts';
 
 const MENU_ITEMS = [
   { key: 'all', label: 'All Datas Query' },
   { key: 'hot', label: 'Hot Products by Category' },
+  { key: 'growth', label: 'Top Growth Products' },
 ];
 
 function CancelSubscriptionButton({ tier, onCancelSuccess }: { tier: string, onCancelSuccess: () => void }) {
@@ -164,7 +166,7 @@ export default function DashboardPage() {
                         onClick={() => setSelectedMenu(item.key)}
                         title={item.label}
                       >
-                        {item.key === 'all' ? 'A' : 'H'}
+                        {item.key === 'all' ? 'A' : item.key === 'hot' ? 'H' : 'G'}
                       </button>
                     ))}
                   </div>
@@ -175,6 +177,7 @@ export default function DashboardPage() {
             <div className="flex-1 bg-white rounded-lg shadow p-6 min-h-[400px] text-blue-900 ml-[-1px]">
               {selectedMenu === 'all' && <ProductsContent credits={credits} setCredits={setCredits} />}
               {selectedMenu === 'hot' && <ProductsExplorerContent credits={credits} setCredits={setCredits} />}
+              {selectedMenu === 'growth' && <TopGrowthProducts />}
             </div>
           </div>
         </div>
