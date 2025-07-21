@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { countryGoogleShoppingMap } from "@/lib/country-google-shopping";
 import { useI18n } from '@/lib/i18n/context';
 
@@ -58,9 +58,15 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
     }
   }, [country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice]);
 
+  // 修复分页：监听 currentPage 和 pageSize 自动请求数据
+  useEffect(() => {
+    handleSearch(currentPage, pageSize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize]);
+
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
-    handleSearch(1, newSize);
+    setCurrentPage(1); // 切换每页数量时重置到第一页
   };
 
   const handleQueryWithCredits = async () => {

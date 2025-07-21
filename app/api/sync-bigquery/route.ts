@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   // 构建WHERE条件
   let where = 'WHERE 1=1 ';
   if (country) where += ` AND ranking_country = @country`;
-  if (title) where += ` AND EXISTS (SELECT 1 FROM UNNEST(product_title) AS t WHERE t.name LIKE @title)`;
+  if (title) where += ` AND EXISTS (SELECT 1 FROM UNNEST(product_title) AS t WHERE LOWER(t.name) LIKE LOWER(@title))`;
   if (category) where += ` AND ranking_category = @category`;
   if (brand) where += ` AND brand = @brand`;
   if (brandIsNull === 'true') where += ` AND (brand IS NULL OR brand = '')`;
