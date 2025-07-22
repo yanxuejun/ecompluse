@@ -67,7 +67,7 @@ function QueryFilters({ filters, onChange, children }: { filters: { country: str
         <CountrySelect
           value={filters.country}
           onChange={code => onChange({ ...filters, country: code })}
-          language={language}
+          language={language === 'zh' ? 'zh' : 'en'}
           placeholder="Country"
           className="w-40"
         />
