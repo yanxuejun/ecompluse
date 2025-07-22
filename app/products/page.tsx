@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { countryGoogleShoppingMap } from "@/lib/country-google-shopping";
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
+import { useI18n } from '@/lib/i18n/context';
 
 export default function ProductsPage() {
   // --- State Hooks ---
@@ -65,6 +66,7 @@ export default function ProductsPage() {
         throw new Error('Network response was not ok');
       }
       const json = await res.json();
+      console.log('接口返回数据:', json);
       setData(json.data || []);
       setTotal(json.total || 0);
       setCurrentPage(page);
@@ -90,7 +92,7 @@ export default function ProductsPage() {
     const res = await fetch('/api/credits/deduct', { method: 'POST' });
     const data = await res.json();
     if (!res.ok) {
-      alert(data.error || '积分不足，无法查询');
+      alert(data.error || 'credits不足，无法查询');
       setLoading(false);
       return;
     }
@@ -129,32 +131,33 @@ export default function ProductsPage() {
   const totalPages = Math.ceil(total / pageSize) || 1;
   
   // --- JSX ---
+  const { t, language } = useI18n();
   return (
     <div className="p-2 md:p-8">
-      <h1 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">BigQuery 产品数据筛选</h1>
+      <h1 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">{t.products.title}</h1>
       
       {/* Filter Inputs */}
       <div className="flex flex-col md:flex-row flex-wrap gap-2 md:gap-4 mb-4">
-        <input placeholder="国家" value={country} onChange={e => setCountry(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder="产品标题(模糊)" value={title} onChange={e => setTitle(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder="品类ID" value={category} onChange={e => setCategory(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder="品牌" value={brand} onChange={e => setBrand(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+        <input placeholder={t.products.filters.country} value={country} onChange={e => setCountry(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+        <input placeholder={t.products.filters.title} value={title} onChange={e => setTitle(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+        <input placeholder={t.products.filters.category} value={category} onChange={e => setCategory(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+        <input placeholder={t.products.filters.brand} value={brand} onChange={e => setBrand(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
         <input type="date" value={start} onChange={e => setStart(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
         <input type="date" value={end} onChange={e => setEnd(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder="最小排名" type="number" value={minRank} onChange={e => setMinRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <input placeholder="最大排名" type="number" value={maxRank} onChange={e => setMaxRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <input placeholder="最低价格" type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <input placeholder="最高价格" type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+        <input placeholder={t.products.filters.minRank} type="number" value={minRank} onChange={e => setMinRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+        <input placeholder={t.products.filters.maxRank} type="number" value={maxRank} onChange={e => setMaxRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+        <input placeholder={t.products.filters.minPrice} type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+        <input placeholder={t.products.filters.maxPrice} type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
         <label className="flex items-center gap-1 text-sm">
           <input type="checkbox" checked={brandIsNull} onChange={e => setBrandIsNull(e.target.checked)} />
-          只看无品牌
+          {t.products.filters.onlyNoBrand}
         </label>
         <button
           onClick={handleQueryWithCredits}
           className="bg-blue-600 text-white font-bold text-base md:text-lg px-6 py-2 md:px-8 md:py-3 rounded-lg shadow hover:bg-blue-700 transition md:w-auto"
           disabled={loading}
         >
-          {loading ? '查询中...' : '查询'}
+          {loading ? t.products.querying : t.products.query}
         </button>
       </div>
 
@@ -162,7 +165,7 @@ export default function ProductsPage() {
       {loading && (
         <div className="flex justify-center items-center my-8">
           <span className="animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-accent mr-4"></span>
-          <span className="text-accent text-lg font-bold">加载中...</span>
+          <span className="text-accent text-lg font-bold">{t.products.loading}</span>
         </div>
       )}
 
@@ -172,16 +175,16 @@ export default function ProductsPage() {
           <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
             <thead>
               <tr className="bg-background">
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">排名</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">国家</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">品类</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">品牌</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">产品标题</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">之前排名</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">价格范围</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">相关需求度</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">之前需求度</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">时间</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rank}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.country}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.category}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.brand}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.productTitle}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRank}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.priceRange}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.relativeDemand}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRelativeDemand}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.brand}</th>
               </tr>
             </thead>
             <tbody>
@@ -191,10 +194,11 @@ export default function ProductsPage() {
                 const productTitle = getTitle(item.product_title);
                 const searchUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productTitle)}&gl=${gl}&hl=${hl}`;
 
-                console.log('item', item);
+                // 新的唯一 key 生成，直接用 rank_id
+                const key = item.rank_id;
 
                 return (
-                  <tr key={item.rank_id || idx} className="bg-background rounded-lg shadow border-b border-gray-100">
+                  <tr key={key} className="bg-background rounded-lg shadow border-b border-gray-100">
                     <td className="px-2 md:px-3 py-1 md:py-2 font-bold text-primary">{item.rank}</td>
                     <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_country}</td>
                     <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_category}</td>
@@ -207,8 +211,12 @@ export default function ProductsPage() {
                     <td className="px-2 md:px-3 py-1 md:py-2">{item.previous_rank}</td>
                     <td className="px-2 md:px-3 py-1 md:py-2">{getPriceRange(item.price_range)}</td>
                     <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.relative_demand)}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.previous_relative_demand)}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{item.rank_timestamp?.value || ''}</td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">{/* 调试 previous_relative_demand */}
+                      {(() => { console.log('previous_relative_demand', item.previous_relative_demand); return getDemand(item.previous_relative_demand); })()}
+                    </td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">
+                      666
+                    </td>
                   </tr>
                 );
               })}

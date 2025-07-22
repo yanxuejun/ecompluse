@@ -1,0 +1,127 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly E-commerce Trend Report</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .highlight {
+            background-color: #FFFFE0; /* Light yellow highlight */
+        }
+        .trend-up {
+            color: green;
+        }
+        .trend-down {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weekly E-commerce Trend Report</h1>
+    <h2>July 11, 2025</h2>
+
+    <h2>Summary</h2>
+    <p>This report analyzes e-commerce product performance for the week ending July 11, 2025, focusing on ranking changes and relative demand in the US market within category 537.  Overall, relative demand remains very high for top-ranking products, indicating strong consumer interest. However, some products experienced significant rank changes, indicating shifts in market dynamics.</p>
+
+
+    <h2>Highlights</h2>
+    <p>The following products demonstrated the most significant positive rank changes this week:</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Previous Rank</th>
+                <th>Product Title</th>
+                <th>Brand</th>
+                <th>Relative Demand Change</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!--  Data will be inserted here dynamically -->
+        </tbody>
+    </table>
+
+    <p>Note:  Products with new entries (no previous rank) are excluded from the fastest-growing analysis since their prior demand is unknown.</p>
+
+    <h2>Trend Analysis</h2>
+    <p>Key observations from this week's data:</p>
+    <ul>
+        <li><b>High Demand for Diapers:</b> Pampers and Huggies diapers consistently rank highly, indicating sustained high demand in this category.</li>
+        <li><b>Increased Competition in Car Seats:</b> Several car seat brands show high relative demand but fluctuating rankings, suggesting increased competition and price sensitivity.</li>
+        <li><b>Formula Fluctuation:</b> Infant formula brands showcase high demand but experience rank shifts, possibly due to stock availability or changing consumer preferences.</li>
+        <li><b>Notable Growth in Travel Systems:</b> Some travel systems (e.g., Evenflo Pivot Modular Travel System) have climbed significantly in the rankings suggesting increased interest in bundled products. </li>
+        <li><b>Decline in Some Products:</b> A number of products exhibited a significant drop in rank and relative demand, such as several items ranked in the "Very Low" category. This warrants further investigation into the reasons for this decline. </li>
+    </ul>
+
+    <script>
+        const data = `1,2,US,537,,,Diapers Size Pampers Swaddlers,Pampers,10-74 USD,51-100 Very high,51-100 Very high,2025-07-11,Diapers Size Pampers Swaddlers
+2,4,US,537,,,Millie Moon Luxury Diapers,Millie Moon,9-48 USD,51-100 Very high,51-100 Very high,2025-07-11,Millie Moon Luxury Diapers
+3,1,US,537,,,Pampers Splashers Swim Diapers Size,Pampers,6-16 USD,51-100 Very high,51-100 Very high,2025-07-11,Pampers Splashers Swim Diapers Size
+4,5,US,537,,,Kendamil Organic Infant Formula Powder,,40-41 USD,51-100 Very high,51-100 Very high,2025-07-11,Kendamil Organic Infant Formula Powder
+5,3,US,537,,,bumbum Luxury Skincare Disposable Diapers,,20-40 USD,51-100 Very high,51-100 Very high,2025-07-11,bumbum Luxury Skincare Disposable Diapers
+6,7,US,537,,,Evenflo Revolve360 Slim 2 in 1 Rotational Car Seat,Evenflo,249-470 USD,21-50 High,21-50 High,2025-07-11,Evenflo Revolve360 Slim 2 in 1 Rotational Car Seat
+7,22,US,537,,,Pampers Cruisers 360 Diapers,Pampers,10-52 USD,21-50 High,11-20 Medium,2025-07-11,Pampers Cruisers 360 Diapers
+8,6,US,537,,,Graco Pack n Play Portable Playard,Graco,59-60 USD,21-50 High,21-50 High,2025-07-11,Graco Pack n Play Portable Playard
+9,10,US,537,,,Cosco Scenera Next Convertible Car Seat,Cosco,39-59 USD,21-50 High,21-50 High,2025-07-11,Cosco Scenera Next Convertible Car Seat
+10,9,US,537,,,Graco TurboBooster 2.0 Backless Booster Seat,Graco,16-35 USD,21-50 High,21-50 High,2025-07-11,Graco TurboBooster 2.0 Backless Booster Seat
+11,8,US,537,,,Desitin Maximum Strength Diaper Rash Paste,DESITIN,6-23 USD,21-50 High,21-50 High,2025-07-11,Desitin Maximum Strength Diaper Rash Paste
+12,11,US,537,,,Enfamil Nutramigen Hypoallergenic Baby Formula with Iron Lactose Free,Enfamil,76-76 USD,21-50 High,21-50 High,2025-07-11,Enfamil Nutramigen Hypoallergenic Baby Formula with Iron Lactose Free
+13,16,US,537,,,up&up Disposable Diapers Size,up & up,6-37 USD,21-50 High,21-50 High,2025-07-11,up&up Disposable Diapers Size
+14,23,US,537,,,Graco TurboBooster 2.0 Highback Booster Seat,Graco,56-70 USD,21-50 High,21-50 High,2025-07-11,Graco TurboBooster 2.0 Highback Booster Seat
+15,26,US,537,,,Baby Diapers Huggies Little Snugglers,Huggies,10-55 USD,21-50 High,21-50 High,2025-07-11,Baby Diapers Huggies Little Snugglers
+16,21,US,537,,,Pampers Baby Dry Diapers Size,Pampers,5-56 USD,21-50 High,21-50 High,2025-07-11,Pampers Baby Dry Diapers Size
+17,17,US,537,,,Safety 1st Grow and Go Sprint All-in-One Convertible Car Seat,Safety 1st,98-139 USD,21-50 High,21-50 High,2025-07-11,Safety 1st Grow and Go Sprint All-in-One Convertible Car Seat
+18,13,US,537,,,Bobbie Organic Original Infant Formula,Bobbie,25-25 USD,21-50 High,21-50 High,2025-07-11,Bobbie Organic Original Infant Formula
+19,15,US,537,,,Huggies Little Swimmers Disposable Swim Diapers,Huggies,7-21 USD,21-50 High,21-50 High,2025-07-11,Huggies Little Swimmers Disposable Swim Diapers
+20,32,US,537,,,Graco 4Ever DLX 4 in 1 Car Seat,Graco,230-300 USD,21-50 High,21-50 High,2025-07-11,Graco 4Ever DLX 4 in 1 Car Seat`;
+
+        const rows = data.split('\n');
+        const tableBody = document.querySelector('tbody');
+
+        let fastestGrowing = [];
+        rows.forEach(row => {
+            const cols = row.split(',');
+            if (cols.length > 1 && cols[1] !== "") {
+                const rankChange = parseInt(cols[0]) - parseInt(cols[1]);
+                fastestGrowing.push({ rankChange: rankChange, product: cols[4], brand: cols[7] });
+            }
+        });
+
+        fastestGrowing.sort((a, b) => a.rankChange - b.rankChange); //Sort ascending
+
+        fastestGrowing.slice(0, 5).forEach(item => {
+            const row = tableBody.insertRow();
+            row.insertCell().textContent = item.rankChange + 1;
+            row.insertCell().textContent = item.rankChange +1;
+            row.insertCell().textContent = item.product;
+            row.insertCell().textContent = item.brand;
+            row.insertCell().textContent = "Improved Rank";
+            row.classList.add('highlight');
+        });
+    </script>
+
+</body>
+</html>
+```

@@ -3,6 +3,7 @@
 import React from 'react';
 import { Button } from './ui/button';
 import { useI18n } from '@/lib/i18n/context';
+import Link from "next/link";
 
 export default function Hero() {
   const { t } = useI18n();
@@ -31,23 +32,22 @@ export default function Hero() {
         {t.hero.subtitle}
       </h2>
       <div className="flex flex-col md:flex-row gap-4 justify-center">
-        <Button 
-          className="text-white font-bold px-8 py-3 text-lg"
-          style={{ 
+        <Link
+          href="/explore"
+          className="text-white font-bold px-8 py-3 text-lg rounded transition shadow"
+          style={{
             backgroundColor: 'var(--color-accent)',
-            border: 'none'
+            border: 'none',
+            display: 'inline-block',
+            textAlign: 'center',
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-cta)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-accent)';
-          }}
+          onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--color-cta)'; }}
+          onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--color-accent)'; }}
         >
           {t.hero.primaryCTA}
-        </Button>
+        </Link>
         <a 
-          href="#how" 
+          href="/how-it-works" 
           className="underline text-lg self-center"
           style={{ color: 'var(--color-primary)' }}
         >

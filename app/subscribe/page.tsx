@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { useI18n } from '@/lib/i18n/context';
 
 const plans = [
   {
@@ -10,7 +11,7 @@ const plans = [
     oldPrice: 1.99,
     features: [
       "Free trial",
-      "Free Points 28",
+      "Free Credits 20",
     ],
     button: "Get EcomPulse",
     popular: false,
@@ -22,7 +23,7 @@ const plans = [
     oldPrice: 39.99,
     features: [
       "Free trial",
-      "Free Points 580",
+      "Free Credits 580",
     ],
     button: "Get EcomPulse",
     popular: true,
@@ -34,7 +35,7 @@ const plans = [
     oldPrice: 69.99,
     features: [
       "Free trial",
-      "Free Points Unlimited",
+      "Free Credits Unlimited",
     ],
     button: "Get EcomPulse",
     popular: false,
@@ -43,15 +44,39 @@ const plans = [
 ];
 
 export default function SubscribePage() {
-  const { isSignedIn, isLoaded } = useUser();
+  const { isSignedIn, isLoaded, user } = useUser();
   const router = useRouter();
   const [selected, setSelected] = useState<string | null>(null);
+  const { t, language } = useI18n();
+  const [userTier, setUserTier] = useState<string | null>(null);
+
+  // 获取当前用户套餐
+  React.useEffect(() => {
+    async function fetchTier() {
+      if (isSignedIn && isLoaded && user) {
+        const res = await fetch('/api/user/profile');
+        if (res.ok) {
+          const data = await res.json();
+          setUserTier(data.tier);
+        }
+      }
+    }
+    fetchTier();
+  }, [isSignedIn, isLoaded, user]);
 
   const handleSubscribe = async () => {
     if (!selected) return;
     if (!isLoaded) return;
     if (!isSignedIn) {
       router.push("/sign-in?redirect_url=/subscribe");
+      return;
+    }
+    if (selected === 'starter' && userTier === 'starter') {
+      alert(language === 'zh' ? '您已是Starter套餐，credits不会变化。' : 'You are already on the Starter plan. Credits will not change.');
+      return;
+    }
+    if ((selected === 'standard' || selected === 'starter') && userTier === 'premium') {
+      alert(language === 'zh' ? '当前为Premium套餐，不允许降级。' : 'You are currently on the Premium plan. Downgrade is not allowed.');
       return;
     }
     // 调用 Stripe API

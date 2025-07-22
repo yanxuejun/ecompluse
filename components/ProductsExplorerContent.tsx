@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { countryGoogleShoppingMap } from "@/lib/country-google-shopping";
+import CountrySelect from "./ui/CountrySelect";
+import CategoryTreeSelect from "./ui/CategoryTreeSelect";
 
 interface TaxonomyNode {
   code: string;
@@ -18,7 +20,7 @@ function TaxonomyTree({ onSelect, selectedCode }: { onSelect: (code: string) => 
   const [tree, setTree] = React.useState<TaxonomyNode[]>([]);
   const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
   React.useEffect(() => {
-    fetch('/api/taxonomy-tree')
+    fetch('/categories.json')
       .then(res => res.json())
       .then(setTree);
   }, []);
@@ -50,33 +52,35 @@ function TaxonomyTree({ onSelect, selectedCode }: { onSelect: (code: string) => 
   );
   return (
     <div className="bg-white rounded shadow p-4 h-full overflow-auto">
-      <h2 className="font-bold mb-2">目录树</h2>
+      <h2 className="font-bold mb-2">Category Tree</h2>
       {renderTree(tree)}
     </div>
   );
 }
 
 function QueryFilters({ filters, onChange, children }: { filters: { country: string; minPrice: string; maxPrice: string; brandIsNull: string }; onChange: (f: any) => void; children?: React.ReactNode }) {
+  const { language } = useI18n ? useI18n() : { language: "en" };
   return (
     <div className="bg-white rounded shadow p-4 flex flex-wrap gap-4 items-end">
       <div>
-        <label className="block text-sm mb-1">国家</label>
-        <input
-          className="border px-2 py-1 rounded"
+        <label className="block text-sm mb-1">Country</label>
+        <CountrySelect
           value={filters.country}
-          onChange={e => onChange({ ...filters, country: e.target.value })}
-          placeholder="国家"
+          onChange={code => onChange({ ...filters, country: code })}
+          language={language === 'zh' ? 'zh' : 'en'}
+          placeholder="Country"
+          className="w-40"
         />
       </div>
       <div>
-        <label className="block text-sm mb-1">价格区间</label>
+        <label className="block text-sm mb-1">Price Range</label>
         <div className="flex gap-2">
           <input
             className="border px-2 py-1 rounded w-20"
             type="number"
             value={filters.minPrice}
             onChange={e => onChange({ ...filters, minPrice: e.target.value })}
-            placeholder="最低价"
+            placeholder="Min Price"
           />
           <span>-</span>
           <input
@@ -84,20 +88,20 @@ function QueryFilters({ filters, onChange, children }: { filters: { country: str
             type="number"
             value={filters.maxPrice}
             onChange={e => onChange({ ...filters, maxPrice: e.target.value })}
-            placeholder="最高价"
+            placeholder="Max Price"
           />
         </div>
       </div>
       <div>
-        <label className="block text-sm mb-1">品牌筛选</label>
+        <label className="block text-sm mb-1">Brand Filter</label>
         <select
           className="border px-2 py-1 rounded"
           value={filters.brandIsNull}
           onChange={e => onChange({ ...filters, brandIsNull: e.target.value })}
         >
-          <option value="">全部品牌</option>
-          <option value="false">有品牌</option>
-          <option value="true">无品牌</option>
+          <option value="">All Brands</option>
+          <option value="false">With Brand</option>
+          <option value="true">No Brand</option>
         </select>
       </div>
       {/* 查询按钮插槽 */}
@@ -108,13 +112,14 @@ function QueryFilters({ filters, onChange, children }: { filters: { country: str
   );
 }
 
-function ProductTable({ category, filters }: { category: string | null; filters: { country: string; minPrice: string; maxPrice: string; brandIsNull: string } }) {
+function ProductTable({ category, filters, hasQueried }: { category: string | null; filters: { country: string; minPrice: string; maxPrice: string; brandIsNull: string }, hasQueried: boolean }) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
   React.useEffect(() => {
+    if (!hasQueried) return;
     if (!category) {
       setData([]);
       setTotal(0);
@@ -136,7 +141,7 @@ function ProductTable({ category, filters }: { category: string | null; filters:
         setTotal(res.total || 0);
       })
       .finally(() => setLoading(false));
-  }, [category, filters, currentPage, pageSize]);
+  }, [category, filters, currentPage, pageSize, hasQueried]);
   React.useEffect(() => {
     setCurrentPage(1);
   }, [category, filters]);
@@ -154,22 +159,16 @@ function ProductTable({ category, filters }: { category: string | null; filters:
   };
   const totalPages = Math.ceil(total / pageSize) || 1;
   return (
-    <div className="bg-white rounded shadow p-4">
-      <h2 className="font-bold mb-2">产品表</h2>
-      {loading ? (
-        <div className="text-accent">加载中...</div>
-      ) : data.length === 0 ? (
-        <div className="text-gray-400">暂无数据</div>
-      ) : (
-        <>
-        <table className="w-full border-separate border-spacing-y-2">
-          <thead>
+    <div className="bg-white rounded-lg shadow p-2 md:p-6 overflow-x-auto">
+      <div className="overflow-auto max-h-[500px]">
+        <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
+          <thead className="sticky top-0 bg-white z-10">
             <tr className="bg-background">
-              <th className="px-3 py-2 text-left">排名</th>
-              <th className="px-3 py-2 text-left">产品标题</th>
-              <th className="px-3 py-2 text-left">国家</th>
-              <th className="px-3 py-2 text-left">价格区间</th>
-              <th className="px-3 py-2 text-left">品牌</th>
+              <th className="px-3 py-2 text-left">Rank</th>
+              <th className="px-3 py-2 text-left">Product Title</th>
+              <th className="px-3 py-2 text-left">Country</th>
+              <th className="px-3 py-2 text-left">Price Range</th>
+              <th className="px-3 py-2 text-left">Brand</th>
             </tr>
           </thead>
           <tbody>
@@ -203,37 +202,36 @@ function ProductTable({ category, filters }: { category: string | null; filters:
             })}
           </tbody>
         </table>
-        {/* 分页控件 */}
-        <div className="flex gap-2 mt-4 items-center">
-          <button
-            className="px-3 py-1 border rounded"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(currentPage - 1)}
-          >
-            上一页
-          </button>
-          <span>
-            第 {currentPage} / {totalPages} 页，共 {total} 条
-          </span>
-          <button
-            className="px-3 py-1 border rounded"
-            disabled={currentPage >= totalPages}
-            onClick={() => setCurrentPage(currentPage + 1)}
-          >
-            下一页
-          </button>
-          <select
-            className="border px-2 py-1 ml-4"
-            value={pageSize}
-            onChange={e => setPageSize(Number(e.target.value))}
-          >
-            {[10, 20, 50, 100].map(size => (
-              <option key={size} value={size}>{size}条/页</option>
-            ))}
-          </select>
-        </div>
-        </>
-      )}
+      </div>
+      {/* 分页控件 */}
+      <div className="flex gap-2 mt-4 items-center">
+        <button
+          className="px-3 py-1 border rounded"
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage(currentPage - 1)}
+        >
+          Previous Page
+        </button>
+        <span>
+          Page {currentPage} / {totalPages}, Total {total} items
+        </span>
+        <button
+          className="px-3 py-1 border rounded"
+          disabled={currentPage >= totalPages}
+          onClick={() => setCurrentPage(currentPage + 1)}
+        >
+          Next Page
+        </button>
+        <select
+          className="border px-2 py-1 ml-4"
+          value={pageSize}
+          onChange={e => setPageSize(Number(e.target.value))}
+        >
+          {[10, 20, 50, 100].map(size => (
+            <option key={size} value={size}>{size} items/page</option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 }
@@ -245,6 +243,7 @@ export default function ProductsExplorerContent({ credits, setCredits }: { credi
   // 实际查询用的 state
   const [category, setCategory] = useState<string | null>(null);
   const [filters, setFilters] = useState<{ country: string; minPrice: string; maxPrice: string; brandIsNull: string }>({ country: '', minPrice: '', maxPrice: '', brandIsNull: '' });
+  const [hasQueried, setHasQueried] = useState(false);
   
   // 查询按钮点击时应用
   const handleQuery = async () => {
@@ -284,6 +283,7 @@ export default function ProductsExplorerContent({ credits, setCredits }: { credi
       }
       
       // 应用查询参数
+      setHasQueried(true);
       setCategory(pendingCategory);
       setFilters(pendingFilters);
     } catch (error) {
@@ -304,10 +304,10 @@ export default function ProductsExplorerContent({ credits, setCredits }: { credi
             className="bg-blue-600 text-white font-bold px-6 py-2 rounded-lg shadow hover:bg-blue-700 transition"
             onClick={handleQuery}
           >
-            查询
+            Query
           </button>
         </QueryFilters>
-        <ProductTable category={category} filters={filters} />
+        <ProductTable category={category} filters={filters} hasQueried={hasQueried} />
       </div>
     </div>
   );

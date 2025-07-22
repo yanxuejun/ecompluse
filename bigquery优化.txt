@@ -65,3 +65,7 @@ CLUSTER BY country, category_id, rank
 OPTIONS(
   description="Enriched product week rank data with Google Search API information"
 ); 
+==================
+US JP AU FR
+
+166 222 536 1239 888

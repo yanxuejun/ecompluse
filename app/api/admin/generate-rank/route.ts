@@ -55,6 +55,18 @@ export async function POST(req: NextRequest) {
     // 组装插入数据
     const enrichedRows = await Promise.all(
       rows.map(async (row: any, idx: number) => {
+        // 验证 rank_timestamp 一致性
+        let finalRankTimestamp;
+        if (row.rank_timestamp && typeof row.rank_timestamp.value === "string") {
+          finalRankTimestamp = row.rank_timestamp.value;
+        } else if (row.rank_timestamp instanceof Date) {
+          finalRankTimestamp = row.rank_timestamp.toISOString();
+        } else if (typeof row.rank_timestamp === "string") {
+          finalRankTimestamp = row.rank_timestamp;
+        } else {
+          finalRankTimestamp = new Date().toISOString();
+        }
+        console.log("源表 rank_timestamp:", row.rank_timestamp, "插入表 rank_timestamp:", finalRankTimestamp);
         const google = await searchGoogleImage(
           Array.isArray(row.product_title) && row.product_title.length > 0
             ? row.product_title[0].name
@@ -71,7 +83,7 @@ export async function POST(req: NextRequest) {
           image_url: google.image_url,
           search_link: google.search_link,
           search_title: google.search_title,
-          rank_timestamp: row.rank_timestamp,
+          rank_timestamp: finalRankTimestamp,
           previous_rank: Number(row.previous_rank),
           rank_improvement: Number(row.previous_rank) - Number(row.rank),
           rank_type: "1",
@@ -82,7 +94,8 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    // 插入到 enriched 表
+    // 插入到 enriched 表前打印
+    console.log("BigQuery Insert Rows:", enrichedRows);
     await bq.dataset(datasetId).table("product_week_rank_enriched").insert(enrichedRows);
 
     return NextResponse.json({ success: true, count: enrichedRows.length });

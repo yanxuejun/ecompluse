@@ -1,0 +1,11 @@
+
+
+
+1、在/admin/dashboard 界面中增加国家、类目id（类目树选择方式）  查询条件，点击生成csv文件按钮
+2、后端 调用 API 路由（ /api/export-csv）接收国家、类目参数。
+3、查询 BigQuery BestSellers_TopProducts_479974220获取结果。
+4、用 csv-stringify 库将结果转为 CSV。
+5、将生成的 CSV 文件保存到本地服务器的以日期命名的目录下（如 /exports/2024-07-12/xxx.csv 命名规则日期+类目id+国家
+6、在/admin/dashboard 界面中增加 按钮，单击生成html报表
+7、调用 OpenAI GPT API，带上这个csv文件，和特定 prompt，让 GPT 生成一段 HTML 格式文件（如周报、榜单解读等），放在该目录下命名规则一致。
+

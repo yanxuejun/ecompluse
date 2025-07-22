@@ -1,8 +1,12 @@
 "use client";
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { countryGoogleShoppingMap } from "@/lib/country-google-shopping";
+import { useI18n } from '@/lib/i18n/context';
+import CountrySelect from "./ui/CountrySelect";
+import CategoryTreeSelect from "./ui/CategoryTreeSelect";
 
 export default function ProductsContent({ credits, setCredits }: { credits: number|null, setCredits: (n: number|null)=>void }) {
+  const { t, language } = useI18n();
   // Filter states
   const [country, setCountry] = useState('');
   const [title, setTitle] = useState('');
@@ -15,6 +19,7 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
   const [maxRank, setMaxRank] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [hasQueried, setHasQueried] = useState(false);
 
   // Data and UI states
   const [data, setData] = useState<any[]>([]);
@@ -56,54 +61,53 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
     }
   }, [country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice]);
 
+  useEffect(() => {
+    if (hasQueried) {
+      handleSearch(currentPage, pageSize);
+    }
+  }, [currentPage, pageSize, hasQueried, handleSearch]);
+
+  // 新增：只有点击查询按钮时才查询
+  // 点击查询按钮时，currentPage/pageSize 也要重置
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
-    handleSearch(1, newSize);
+    setCurrentPage(1); // 切换每页数量时重置到第一页
   };
 
   const handleQueryWithCredits = async () => {
-    // 检查积分是否足够
     if (credits === null) {
-      alert('正在加载用户信息，请稍后再试');
+      alert(t.products.creditsLoading);
       return;
     }
-    
     if (credits <= 0) {
-      alert('积分不足！\n\n当前积分：0\n\n请升级到高级套餐获得无限积分，或等待下月积分重置。');
+      alert(t.products.creditsNotEnough + `\n\n${t.products.currentCredits}: 0`);
       return;
     }
-
     setLoading(true);
     try {
       const res = await fetch('/api/credits/deduct', { method: 'POST' });
       const data = await res.json();
-      
       if (!res.ok) {
         if (res.status === 400) {
-          alert('积分不足！\n\n请升级到高级套餐获得无限积分，或等待下月积分重置。');
+          alert(t.products.creditsNotEnough);
         } else {
-          alert(`扣除积分失败：${data.error || '未知错误'}`);
+          alert(t.products.creditsDeductFailed + (data.error || t.products.unknownError));
         }
         setLoading(false);
         return;
       }
-
-      // 实时更新积分显示
       const newCredits = data.remainingCredits || (typeof credits === 'number' ? credits - 1 : credits);
       setCredits(newCredits);
-      
-      // 显示积分扣除成功提示
+      setHasQueried(true);
       if (newCredits > 0) {
-        alert(`查询成功！\n\n已扣除1积分，剩余积分：${newCredits}`);
+        alert(t.products.querySuccess + `\n\n${t.products.creditsDeducted} 1, ${t.products.currentCredits}: ${newCredits}`);
       } else {
-        alert('查询成功！\n\n已扣除1积分，积分已用完。');
+        alert(t.products.querySuccess + `\n\n${t.products.creditsDeducted} 1, ${t.products.creditsUsedUp}`);
       }
-      
-      // 执行查询
+      setCurrentPage(1);
       await handleSearch(1, pageSize);
     } catch (error) {
-      alert('网络错误，请稍后重试');
-      console.error('Query error:', error);
+      alert(t.products.networkError);
     } finally {
       setLoading(false);
     }
@@ -130,107 +134,107 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
 
   return (
     <div className="p-2 md:p-8">
-      <h1 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">BigQuery 产品数据筛选</h1>
+      <h1 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">{t.products.title}</h1>
       <div className="flex flex-col md:flex-row flex-wrap gap-2 md:gap-4 mb-4">
-        <input placeholder="国家" value={country} onChange={e => setCountry(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder="产品标题(模糊)" value={title} onChange={e => setTitle(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder="品类ID" value={category} onChange={e => setCategory(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder="品牌" value={brand} onChange={e => setBrand(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+        <CountrySelect
+          value={country}
+          onChange={setCountry}
+          language={language}
+          placeholder={t.products.filters.country}
+          className="w-full md:w-auto text-sm"
+        />
+        <input placeholder={t.products.filters.title} value={title} onChange={e => setTitle(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+        <CategoryTreeSelect
+          value={category}
+          onChange={code => setCategory(Array.isArray(code) ? (code[0] || '') : code)}
+          placeholder={t.products.filters.category}
+          className="w-full md:w-auto text-sm"
+        />
+        <input placeholder={t.products.filters.brand} value={brand} onChange={e => setBrand(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
         <input type="date" value={start} onChange={e => setStart(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
         <input type="date" value={end} onChange={e => setEnd(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder="最小排名" type="number" value={minRank} onChange={e => setMinRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <input placeholder="最大排名" type="number" value={maxRank} onChange={e => setMaxRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <input placeholder="最低价格" type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <input placeholder="最高价格" type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+        <input placeholder={t.products.filters.minRank} type="number" value={minRank} onChange={e => setMinRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+        <input placeholder={t.products.filters.maxRank} type="number" value={maxRank} onChange={e => setMaxRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+        <input placeholder={t.products.filters.minPrice} type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+        <input placeholder={t.products.filters.maxPrice} type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
         <label className="flex items-center gap-1 text-sm">
           <input type="checkbox" checked={brandIsNull} onChange={e => setBrandIsNull(e.target.checked)} />
-          只看无品牌
+          {t.products.filters.onlyNoBrand}
         </label>
         <button
           onClick={handleQueryWithCredits}
           className="bg-blue-600 text-white font-bold text-base md:text-lg px-6 py-2 md:px-8 md:py-3 rounded-lg shadow hover:bg-blue-700 transition md:w-auto"
           disabled={loading}
         >
-          {loading ? '查询中...' : '查询'}
+          {loading ? t.products.querying : t.products.query}
         </button>
       </div>
       {loading && (
         <div className="flex justify-center items-center my-8">
           <span className="animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-accent mr-4"></span>
-          <span className="text-accent text-lg font-bold">加载中...</span>
+          <span className="text-accent text-lg font-bold">{t.products.loading}</span>
         </div>
       )}
       {!loading && (
         <div className="bg-white rounded-lg shadow p-2 md:p-6 overflow-x-auto">
-          <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
-            <thead>
-              <tr className="bg-background">
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">排名</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">国家</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">品类</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">品牌</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">产品标题</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">之前排名</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">价格范围</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">相关需求度</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">之前需求度</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">时间</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((item, idx) => {
-                const countryCode = item.ranking_country;
-                const { gl, hl } = countryGoogleShoppingMap[countryCode] || { gl: 'us', hl: 'en' };
-                const productTitle = getTitle(item.product_title);
-                const searchUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productTitle)}&gl=${gl}&hl=${hl}`;
-                return (
-                  <tr key={item.rank_id || idx} className="bg-background rounded-lg shadow border-b border-gray-100">
-                    <td className="px-2 md:px-3 py-1 md:py-2 font-bold text-primary">{item.rank}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_country}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_category}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{item.brand}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">
-                      <a href={searchUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        {productTitle}
-                      </a>
-                    </td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{item.prev_rank}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{getPriceRange(item.price_range)}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.relative_demand)}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.prev_relative_demand)}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{item.date}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {/* 分页控件 */}
-          <div className="flex gap-2 mt-4 items-center">
-            <button
-              className="px-3 py-1 border rounded"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              上一页
+          <div className="overflow-auto max-h-[500px]">
+            <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
+              <thead className="sticky top-0 bg-white z-10">
+                <tr className="bg-background">
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rank}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.country}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.category}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.brand}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.productTitle}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRank}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.priceRange}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.relativeDemand}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRelativeDemand}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rankTimestamp}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((item) => {
+                  const countryCode = item.ranking_country;
+                  const { gl, hl } = countryGoogleShoppingMap[countryCode] || { gl: 'us', hl: 'en' };
+                  const productTitle = getTitle(item.product_title);
+                  const searchUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productTitle)}&gl=${gl}&hl=${hl}`;
+                  const key = item.rank_id || `${typeof item.rank_timestamp === 'string' ? item.rank_timestamp : item.rank_timestamp?.value}:${item.ranking_country}:${item.rank}:${item.ranking_category}:${productTitle}`;
+                  return (
+                    <tr key={key} className="bg-background rounded-lg shadow border-b border-gray-100">
+                      <td className="px-2 md:px-3 py-1 md:py-2 font-bold text-primary">{item.rank}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_country}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_category}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{item.brand}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">
+                        <a href={searchUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          {productTitle}
+                        </a>
+                      </td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{item.previous_rank ?? ''}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{getPriceRange(item.price_range)}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.relative_demand)}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.previous_relative_demand)}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{item.rank_timestamp?.value ? item.rank_timestamp.value.slice(0, 10) : (typeof item.rank_timestamp === 'string' ? item.rank_timestamp.slice(0, 10) : '')}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {/* Pagination Controls with i18n */}
+          <div className="flex flex-col md:flex-row gap-2 md:gap-4 mt-4 items-center">
+            <button className="px-3 py-1 border rounded text-xs md:text-base disabled:opacity-50" disabled={currentPage === 1 || loading} onClick={() => setCurrentPage(currentPage - 1)}>
+              {t.products.prevPage}
             </button>
             <span>
-              第 {currentPage} / {totalPages} 页，共 {total} 条
+              {t.products.page} {currentPage} / {totalPages}, {t.products.total} {total} {t.products.items}
             </span>
-            <button
-              className="px-3 py-1 border rounded"
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
-              下一页
+            <button className="px-3 py-1 border rounded text-xs md:text-base disabled:opacity-50" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(currentPage + 1)}>
+              {t.products.nextPage}
             </button>
-            <select
-              className="border px-2 py-1 ml-4"
-              value={pageSize}
-              onChange={e => handlePageSizeChange(Number(e.target.value))}
-            >
-              {[10, 20, 50, 100].map(size => (
-                <option key={size} value={size}>{size}条/页</option>
-              ))}
+            <select className="border px-2 py-1 ml-4 w-full md:w-auto text-xs md:text-base" value={pageSize} onChange={e => handlePageSizeChange(Number(e.target.value))} disabled={loading}>
+              {[10, 20, 50, 100].map(size => (<option key={size} value={size}>{size} {t.products.itemsPerPage}</option>))}
             </select>
           </div>
         </div>

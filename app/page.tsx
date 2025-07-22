@@ -5,8 +5,9 @@ import SocialProof from '@/components/SocialProof';
 import Features from '@/components/Features';
 import TrendPreview from '@/components/TrendPreview';
 import Footer from '@/components/Footer';
-import ConfigChecker from '@/components/ConfigChecker';
 import HomeGrowthSection from "./components/HomeGrowthSection";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -17,12 +18,6 @@ export default function Home() {
         <DataStats />
         <SocialProof />
         <Features />
-        <HomeGrowthSection />
-        {process.env.NODE_ENV === 'development' && (
-          <div className="max-w-4xl mx-auto px-4 py-8">
-            <ConfigChecker />
-          </div>
-        )}
       </main>
       <Footer />
     </div>
