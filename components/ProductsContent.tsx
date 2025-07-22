@@ -146,7 +146,7 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
         <input placeholder={t.products.filters.title} value={title} onChange={e => setTitle(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
         <CategoryTreeSelect
           value={category}
-          onChange={code => setCategory(code)}
+          onChange={code => setCategory(Array.isArray(code) ? (code[0] || '') : code)}
           placeholder={t.products.filters.category}
           className="w-full md:w-auto text-sm"
         />
