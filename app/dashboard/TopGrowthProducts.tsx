@@ -135,7 +135,7 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
         />
         <CategoryTreeSelect
           value={category}
-          onChange={code => setCategory(code)}
+          onChange={code => setCategory(Array.isArray(code) ? (code[0] || '') : code)}
           placeholder={language==='zh'?'类目':'Category'}
           className="w-full md:w-auto text-sm"
         />
