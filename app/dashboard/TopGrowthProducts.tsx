@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useI18n } from '@/lib/i18n/context';
 import { countryGoogleShoppingMap } from '@/lib/country-google-shopping';
+import CountrySelect from "@/components/ui/CountrySelect";
+import CategoryTreeSelect from "@/components/ui/CategoryTreeSelect";
 
 export default function TopGrowthProducts({ credits, setCredits }: { credits: number|null, setCredits: (n: number|null)=>void }) {
   const { t, language } = useI18n();
@@ -20,11 +22,13 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
   const [maxRank, setMaxRank] = useState('');
   const [minRelDemand, setMinRelDemand] = useState('');
   const [maxRelDemand, setMaxRelDemand] = useState('');
+  const [hasQueried, setHasQueried] = useState(false);
 
   useEffect(() => {
-    fetchData(currentPage, pageSize);
-    // eslint-disable-next-line
-  }, [currentPage, pageSize]);
+    if (hasQueried) {
+      fetchData(currentPage, pageSize);
+    }
+  }, [currentPage, pageSize, hasQueried]);
 
   async function fetchData(page = 1, size = 20) {
     setLoading(true); setError('');
@@ -87,21 +91,23 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
       }
       const newCredits = data.remainingCredits || (typeof credits === 'number' ? credits - 1 : credits);
       setCredits(newCredits);
+      setHasQueried(true);
       if (newCredits > 0) {
         alert(t.products.querySuccess + `\n\n${t.products.creditsDeducted} 1, ${t.products.currentCredits}: ${newCredits}`);
       } else {
         alert(t.products.querySuccess + `\n\n${t.products.creditsDeducted} 1, ${t.products.creditsUsedUp}`);
       }
-      await fetchData(1, pageSize);
       setCurrentPage(1);
+      await fetchData(1, pageSize);
     } catch (error: any) {
-      // 只在真正网络错误时弹窗
       alert(error?.message || t.products.networkError);
     } finally {
       setLoading(false);
     }
   }
 
+  // 分页和 pageSize 变化时不自动查询
+  // 只有点击查询按钮后，才允许分页
   const totalPages = Math.ceil(total / pageSize) || 1;
 
   const getProductTitle = (row: any) => {
@@ -120,8 +126,19 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
     <div className="p-2 md:p-8">
       <h2 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">{language==='zh'?'热门产品按增长排名':'Top Growth Products'}</h2>
       <form className="flex flex-col md:flex-row flex-wrap gap-2 md:gap-4 mb-4" onSubmit={handleQueryWithCredits}>
-        <input className="border px-2 py-1 w-full md:w-auto text-sm" placeholder={language==='zh'?'国家':'Country'} value={country} onChange={e=>setCountry(e.target.value)} />
-        <input className="border px-2 py-1 w-full md:w-auto text-sm" placeholder={language==='zh'?'类目':'Category'} value={category} onChange={e=>setCategory(e.target.value)} />
+        <CountrySelect
+          value={country}
+          onChange={setCountry}
+          language={language}
+          placeholder={language==='zh'?'国家':'Country'}
+          className="w-full md:w-auto text-sm"
+        />
+        <CategoryTreeSelect
+          value={category}
+          onChange={code => setCategory(code)}
+          placeholder={language==='zh'?'类目':'Category'}
+          className="w-full md:w-auto text-sm"
+        />
         <input className="border px-2 py-1 w-full md:w-auto text-sm" placeholder={language==='zh'?'品牌':'Brand'} value={brand} onChange={e=>setBrand(e.target.value)} />
         <label className="flex items-center gap-1 text-sm"><input type="checkbox" checked={noBrand} onChange={e=>setNoBrand(e.target.checked)} />{language==='zh'?'只看无品牌':'Only No Brand'}</label>
         <input className="border px-2 py-1 w-full md:w-24 text-sm" placeholder={language==='zh'?'最低价':'Min Price'} value={minPrice} onChange={e=>setMinPrice(e.target.value)} />

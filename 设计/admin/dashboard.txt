@@ -182,3 +182,514 @@ BestSellers_TopProducts_479974220
   "data_type": "TIMESTAMP",
   "is_nullable": "NO"
 }]
+--------------------------------
+
+gmc-bestseller.new_gmc_data.BestSellers_TopProducts_479974220
+
+[
+  {
+    "name": "rank_timestamp",
+    "mode": "NULLABLE",
+    "type": "TIMESTAMP",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "rank_id",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "rank",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "previous_rank",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "ranking_country",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "ranking_category",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "ranking_category_path",
+    "mode": "REPEATED",
+    "type": "RECORD",
+    "description": "",
+    "fields": [
+      {
+        "name": "locale",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "name",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "name": "product_title",
+    "mode": "REPEATED",
+    "type": "RECORD",
+    "description": "",
+    "fields": [
+      {
+        "name": "locale",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "name",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "name": "gtins",
+    "mode": "REPEATED",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "brand",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "google_brand_id",
+    "mode": "NULLABLE",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "google_product_category",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "google_product_category_path",
+    "mode": "REPEATED",
+    "type": "RECORD",
+    "description": "",
+    "fields": [
+      {
+        "name": "locale",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "name",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "name": "price_range",
+    "mode": "NULLABLE",
+    "type": "RECORD",
+    "description": "",
+    "fields": [
+      {
+        "name": "min",
+        "mode": "NULLABLE",
+        "type": "NUMERIC",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "max",
+        "mode": "NULLABLE",
+        "type": "NUMERIC",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "currency",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "name": "relative_demand",
+    "mode": "NULLABLE",
+    "type": "RECORD",
+    "description": "",
+    "fields": [
+      {
+        "name": "min",
+        "mode": "NULLABLE",
+        "type": "INTEGER",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "max",
+        "mode": "NULLABLE",
+        "type": "INTEGER",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "bucket",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "name": "previous_relative_demand",
+    "mode": "NULLABLE",
+    "type": "RECORD",
+    "description": "",
+    "fields": [
+      {
+        "name": "min",
+        "mode": "NULLABLE",
+        "type": "INTEGER",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "max",
+        "mode": "NULLABLE",
+        "type": "INTEGER",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "bucket",
+        "mode": "NULLABLE",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      }
+    ]
+  }
+]
+
+gmc-bestseller.new_gmc_data.BestSellers_TopProducts_Optimized
+
+[
+  {
+    "name": "rank_timestamp",
+    "mode": "",
+    "type": "TIMESTAMP",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "rank_id",
+    "mode": "",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "rank",
+    "mode": "",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "previous_rank",
+    "mode": "",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "ranking_country",
+    "mode": "",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "ranking_category",
+    "mode": "",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "ranking_category_path",
+    "mode": "REPEATED",
+    "type": "RECORD",
+    "description": "",
+    "fields": [
+      {
+        "name": "locale",
+        "mode": "",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "name",
+        "mode": "",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "name": "product_title",
+    "mode": "REPEATED",
+    "type": "RECORD",
+    "description": "",
+    "fields": [
+      {
+        "name": "locale",
+        "mode": "",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "name",
+        "mode": "",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "name": "gtins",
+    "mode": "REPEATED",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "brand",
+    "mode": "",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "google_brand_id",
+    "mode": "",
+    "type": "STRING",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "google_product_category",
+    "mode": "",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  },
+  {
+    "name": "google_product_category_path",
+    "mode": "REPEATED",
+    "type": "RECORD",
+    "description": "",
+    "fields": [
+      {
+        "name": "locale",
+        "mode": "",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "name",
+        "mode": "",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "name": "price_range",
+    "mode": "",
+    "type": "RECORD",
+    "description": "",
+    "fields": [
+      {
+        "name": "min",
+        "mode": "",
+        "type": "NUMERIC",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "max",
+        "mode": "",
+        "type": "NUMERIC",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "currency",
+        "mode": "",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "name": "relative_demand",
+    "mode": "",
+    "type": "RECORD",
+    "description": "",
+    "fields": [
+      {
+        "name": "min",
+        "mode": "",
+        "type": "INTEGER",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "max",
+        "mode": "",
+        "type": "INTEGER",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "bucket",
+        "mode": "",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "name": "previous_relative_demand",
+    "mode": "",
+    "type": "RECORD",
+    "description": "",
+    "fields": [
+      {
+        "name": "min",
+        "mode": "",
+        "type": "INTEGER",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "max",
+        "mode": "",
+        "type": "INTEGER",
+        "description": "",
+        "fields": []
+      },
+      {
+        "name": "bucket",
+        "mode": "",
+        "type": "STRING",
+        "description": "",
+        "fields": []
+      }
+    ]
+  },
+  {
+    "name": "rank_improvement",
+    "mode": "NULLABLE",
+    "type": "INTEGER",
+    "description": "",
+    "fields": []
+  }
+]
+
+写一个bigquery sql 语句，将gmc-bestseller.new_gmc_data.BestSellers_TopProducts_479974220
+表中数据写入 gmc-bestseller.new_gmc_data.BestSellers_TopProducts_Optimized
+
+根据你提供的两个表的字段结构，下面是将 `gmc-bestseller.new_gmc_data.BestSellers_TopProducts_479974220` 的所有数据写入 `gmc-bestseller.new_gmc_data.BestSellers_TopProducts_Optimized` 的 BigQuery SQL 语句（字段一一对应，包含 rank_improvement 字段）：
+
+```sql
+INSERT INTO `gmc-bestseller.new_gmc_data.BestSellers_TopProducts_Optimized` (
+  rank_timestamp,
+  rank_id,
+  rank,
+  previous_rank,
+  ranking_country,
+  ranking_category,
+  ranking_category_path,
+  product_title,
+  gtins,
+  brand,
+  google_brand_id,
+  google_product_category,
+  google_product_category_path,
+  price_range,
+  relative_demand,
+  previous_relative_demand,
+  rank_improvement
+)
+SELECT
+  rank_timestamp,
+  rank_id,
+  rank,
+  previous_rank,
+  ranking_country,
+  ranking_category,
+  ranking_category_path,
+  product_title,
+  gtins,
+  brand,
+  google_brand_id,
+  google_product_category,
+  google_product_category_path,
+  price_range,
+  relative_demand,
+  previous_relative_demand,
+  rank_improvement
+FROM `gmc-bestseller.new_gmc_data.BestSellers_TopProducts_479974220`
+
+

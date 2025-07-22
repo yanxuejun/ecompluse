@@ -8,11 +8,13 @@ import Footer from '../../components/Footer';
 import Navbar from '../../components/Navbar';
 import { useI18n } from '@/lib/i18n/context';
 import TopGrowthProducts from './TopGrowthProducts';
+import WeeklyEmailSubscription from '../../components/WeeklyEmailSubscription';
 
 const MENU_ITEMS = [
   { key: 'all', label: 'All Datas Query' },
   { key: 'hot', label: 'Hot Products by Category' },
   { key: 'growth', label: 'Top Growth Products' },
+  { key: 'subscribe', label: 'Weekly Email Subscription' },
 ];
 
 function CancelSubscriptionButton({ tier, onCancelSuccess }: { tier: string, onCancelSuccess: () => void }) {
@@ -178,6 +180,7 @@ export default function DashboardPage() {
               {selectedMenu === 'all' && <ProductsContent credits={credits} setCredits={setCredits} />}
               {selectedMenu === 'hot' && <ProductsExplorerContent credits={credits} setCredits={setCredits} />}
               {selectedMenu === 'growth' && <TopGrowthProducts credits={credits} setCredits={setCredits} />}
+              {selectedMenu === 'subscribe' && <WeeklyEmailSubscription />}
             </div>
           </div>
         </div>

@@ -2,6 +2,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { countryGoogleShoppingMap } from "@/lib/country-google-shopping";
 import { useI18n } from '@/lib/i18n/context';
+import CountrySelect from "./ui/CountrySelect";
+import CategoryTreeSelect from "./ui/CategoryTreeSelect";
 
 export default function ProductsContent({ credits, setCredits }: { credits: number|null, setCredits: (n: number|null)=>void }) {
   const { t, language } = useI18n();
@@ -17,6 +19,7 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
   const [maxRank, setMaxRank] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [hasQueried, setHasQueried] = useState(false);
 
   // Data and UI states
   const [data, setData] = useState<any[]>([]);
@@ -58,12 +61,14 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
     }
   }, [country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice]);
 
-  // 修复分页：监听 currentPage 和 pageSize 自动请求数据
   useEffect(() => {
-    handleSearch(currentPage, pageSize);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize]);
+    if (hasQueried) {
+      handleSearch(currentPage, pageSize);
+    }
+  }, [currentPage, pageSize, hasQueried, handleSearch]);
 
+  // 新增：只有点击查询按钮时才查询
+  // 点击查询按钮时，currentPage/pageSize 也要重置
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
     setCurrentPage(1); // 切换每页数量时重置到第一页
@@ -93,11 +98,13 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
       }
       const newCredits = data.remainingCredits || (typeof credits === 'number' ? credits - 1 : credits);
       setCredits(newCredits);
+      setHasQueried(true);
       if (newCredits > 0) {
         alert(t.products.querySuccess + `\n\n${t.products.creditsDeducted} 1, ${t.products.currentCredits}: ${newCredits}`);
       } else {
         alert(t.products.querySuccess + `\n\n${t.products.creditsDeducted} 1, ${t.products.creditsUsedUp}`);
       }
+      setCurrentPage(1);
       await handleSearch(1, pageSize);
     } catch (error) {
       alert(t.products.networkError);
@@ -129,9 +136,20 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
     <div className="p-2 md:p-8">
       <h1 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">{t.products.title}</h1>
       <div className="flex flex-col md:flex-row flex-wrap gap-2 md:gap-4 mb-4">
-        <input placeholder={t.products.filters.country} value={country} onChange={e => setCountry(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+        <CountrySelect
+          value={country}
+          onChange={setCountry}
+          language={language}
+          placeholder={t.products.filters.country}
+          className="w-full md:w-auto text-sm"
+        />
         <input placeholder={t.products.filters.title} value={title} onChange={e => setTitle(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder={t.products.filters.category} value={category} onChange={e => setCategory(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+        <CategoryTreeSelect
+          value={category}
+          onChange={code => setCategory(code)}
+          placeholder={t.products.filters.category}
+          className="w-full md:w-auto text-sm"
+        />
         <input placeholder={t.products.filters.brand} value={brand} onChange={e => setBrand(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
         <input type="date" value={start} onChange={e => setStart(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
         <input type="date" value={end} onChange={e => setEnd(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
@@ -159,79 +177,64 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
       )}
       {!loading && (
         <div className="bg-white rounded-lg shadow p-2 md:p-6 overflow-x-auto">
-          <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
-            <thead>
-              <tr className="bg-background">
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rank}</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.country}</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.category}</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.brand}</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.productTitle}</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRank}</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.priceRange}</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.relativeDemand}</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRelativeDemand}</th>
-                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rankTimestamp}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((item) => {
-                const countryCode = item.ranking_country;
-                const { gl, hl } = countryGoogleShoppingMap[countryCode] || { gl: 'us', hl: 'en' };
-                const productTitle = getTitle(item.product_title);
-                const searchUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productTitle)}&gl=${gl}&hl=${hl}`;
-                // 使用 rank_id 和 gtins 联合作为唯一 key
-                const key = item.rank_id
-                  ? `${item.rank_id}-${item.gtins?.join(',') || ''}`
-                  : `${item.rank_timestamp}:${item.ranking_country}:${item.rank}:${item.ranking_category}:${productTitle}`;
-                return (
-                  <tr key={key} className="bg-background rounded-lg shadow border-b border-gray-100">
-                    <td className="px-2 md:px-3 py-1 md:py-2 font-bold text-primary">{item.rank}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_country}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_category}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{item.brand}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">
-                      <a href={searchUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        {productTitle}
-                      </a>
-                    </td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{item.previous_rank ?? ''}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{getPriceRange(item.price_range)}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.relative_demand)}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.previous_relative_demand)}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{item.rank_timestamp?.value ? item.rank_timestamp.value.slice(0, 10) : (typeof item.rank_timestamp === 'string' ? item.rank_timestamp.slice(0, 10) : '')}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {/* 分页控件 */}
-          <div className="flex gap-2 mt-4 items-center">
-            <button
-              className="px-3 py-1 border rounded"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
+          <div className="overflow-auto max-h-[500px]">
+            <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
+              <thead className="sticky top-0 bg-white z-10">
+                <tr className="bg-background">
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rank}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.country}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.category}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.brand}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.productTitle}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRank}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.priceRange}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.relativeDemand}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRelativeDemand}</th>
+                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rankTimestamp}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((item) => {
+                  const countryCode = item.ranking_country;
+                  const { gl, hl } = countryGoogleShoppingMap[countryCode] || { gl: 'us', hl: 'en' };
+                  const productTitle = getTitle(item.product_title);
+                  const searchUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productTitle)}&gl=${gl}&hl=${hl}`;
+                  const key = item.rank_id || `${typeof item.rank_timestamp === 'string' ? item.rank_timestamp : item.rank_timestamp?.value}:${item.ranking_country}:${item.rank}:${item.ranking_category}:${productTitle}`;
+                  return (
+                    <tr key={key} className="bg-background rounded-lg shadow border-b border-gray-100">
+                      <td className="px-2 md:px-3 py-1 md:py-2 font-bold text-primary">{item.rank}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_country}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_category}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{item.brand}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">
+                        <a href={searchUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          {productTitle}
+                        </a>
+                      </td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{item.previous_rank ?? ''}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{getPriceRange(item.price_range)}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.relative_demand)}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.previous_relative_demand)}</td>
+                      <td className="px-2 md:px-3 py-1 md:py-2">{item.rank_timestamp?.value ? item.rank_timestamp.value.slice(0, 10) : (typeof item.rank_timestamp === 'string' ? item.rank_timestamp.slice(0, 10) : '')}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {/* Pagination Controls with i18n */}
+          <div className="flex flex-col md:flex-row gap-2 md:gap-4 mt-4 items-center">
+            <button className="px-3 py-1 border rounded text-xs md:text-base disabled:opacity-50" disabled={currentPage === 1 || loading} onClick={() => setCurrentPage(currentPage - 1)}>
               {t.products.prevPage}
             </button>
             <span>
               {t.products.page} {currentPage} / {totalPages}, {t.products.total} {total} {t.products.items}
             </span>
-            <button
-              className="px-3 py-1 border rounded"
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage(currentPage + 1)}
-            >
+            <button className="px-3 py-1 border rounded text-xs md:text-base disabled:opacity-50" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(currentPage + 1)}>
               {t.products.nextPage}
             </button>
-            <select
-              className="border px-2 py-1 ml-4"
-              value={pageSize}
-              onChange={e => handlePageSizeChange(Number(e.target.value))}
-            >
-              {[10, 20, 50, 100].map(size => (
-                <option key={size} value={size}>{size} {t.products.itemsPerPage}</option>
-              ))}
+            <select className="border px-2 py-1 ml-4 w-full md:w-auto text-xs md:text-base" value={pageSize} onChange={e => handlePageSizeChange(Number(e.target.value))} disabled={loading}>
+              {[10, 20, 50, 100].map(size => (<option key={size} value={size}>{size} {t.products.itemsPerPage}</option>))}
             </select>
           </div>
         </div>
