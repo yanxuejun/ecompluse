@@ -693,5 +693,3 @@ SELECT
 FROM `gmc-bestseller.new_gmc_data.BestSellers_TopProducts_479974220`
 
 
-
-
