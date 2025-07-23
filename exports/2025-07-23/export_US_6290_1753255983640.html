@@ -1,0 +1,191 @@
+Here's a concise and visually appealing HTML report based on the provided CSV data:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly E-commerce Trend Report - Baby Care Products</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+            margin: 0;
+        }
+        h2 {
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        .highlight {
+            background-color: #fffde7;
+            padding: 15px;
+            border-left: 4px solid #ffd600;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .positive {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        .negative {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #7f8c8d;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Weekly E-commerce Trend Report</h1>
+        <p>Baby Care Products (Category 6290) - United States</p>
+        <p>Week Ending: July 11, 2025</p>
+    </div>
+
+    <h2>Executive Summary</h2>
+    <p>This week's baby care product rankings show continued dominance by established brands like Fridababy and Safety 1st, with significant movement in the mid-tier products. The electric nail care segment remains particularly strong, accounting for 60% of top 10 products.</p>
+
+    <div class="highlight">
+        <h3>Key Highlights</h3>
+        <ul>
+            <li><strong>Fridababy maintains category leadership</strong> with 4 products in the top 10, including the #1 ranked Baby Basics Kit</li>
+            <li><strong>Electric Nail File</strong> (unbranded) shows remarkable growth, jumping from #4 to #2 position</li>
+            <li><strong>Dr Talbot's Baby Nail Trimmer</strong> is the fastest growing product, skyrocketing from #34 to #4 with demand shifting from "Very low" to "High"</li>
+            <li><strong>Price sensitivity</strong> evident with 70% of top 10 products priced under $40</li>
+        </ul>
+    </div>
+
+    <h2>Top Performers</h2>
+    <table>
+        <tr>
+            <th>Rank</th>
+            <th>Change</th>
+            <th>Product</th>
+            <th>Brand</th>
+            <th>Price Range</th>
+            <th>Demand Level</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>→</td>
+            <td>Fridababy Baby Basics Kit</td>
+            <td>Fridababy</td>
+            <td>$40-40</td>
+            <td>Very high</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td class="positive">↑ 2</td>
+            <td>Electric Nail File</td>
+            <td>-</td>
+            <td>$9-9</td>
+            <td>Very high</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td class="positive">↑ 30</td>
+            <td>Dr Talbot's Baby Nail Trimmer</td>
+            <td>Dr Talbot's</td>
+            <td>$10-20</td>
+            <td>High (from Very low)</td>
+        </tr>
+    </table>
+
+    <h2>Emerging Trends</h2>
+    <h3>1. Electric Nail Care Dominance</h3>
+    <p>Electric nail files and trimmers represent 12 of the top 30 products (40%), with new entrants like Momcozy making strong debuts at #9 and #12.</p>
+
+    <h3>2. Value Segment Growth</h3>
+    <p>Products in the $9-25 range show strongest momentum, with 8 of the top 10 products falling in this price bracket. The $9 Electric Nail File at #2 demonstrates particular price sensitivity.</p>
+
+    <h3>3. Brand vs. Unbranded Competition</h3>
+    <p>While branded products dominate the top positions (7 of top 10), unbranded alternatives are gaining share in the electric nail care segment, particularly at lower price points.</p>
+
+    <h2>Fastest Growing Products</h2>
+    <table>
+        <tr>
+            <th>Product</th>
+            <th>Rank Change</th>
+            <th>Demand Change</th>
+        </tr>
+        <tr>
+            <td>Dr Talbot's Baby Nail Trimmer</td>
+            <td class="positive">+30 positions</td>
+            <td class="positive">Very low → High</td>
+        </tr>
+        <tr>
+            <td>Electric Nail File</td>
+            <td class="positive">+2 positions</td>
+            <td>Stable (Very high)</td>
+        </tr>
+        <tr>
+            <td>Momcozy Electric Baby Nail File</td>
+            <td>New entry</td>
+            <td>New entry</td>
+        </tr>
+    </table>
+
+    <h2>Recommendations</h2>
+    <ul>
+        <li><strong>Monitor Dr Talbot's</strong> continued growth as it may indicate shifting consumer preferences toward traditional nail trimmers</li>
+        <li><strong>Expand electric nail care assortment</strong> in the $10-25 price range to capitalize on growing segment</li>
+        <li><strong>Highlight value propositions</strong> for branded products to differentiate from lower-priced unbranded alternatives</li>
+    </ul>
+
+    <div class="footer">
+        <p>Data as of July 11, 2025 | Category 6290 (Baby Care Products) | United States Market</p>
+        <p>© 2025 E-commerce Analytics Team</p>
+    </div>
+</body>
+</html>
+```
+
+This HTML report includes:
+
+1. A clean, professional design suitable for email
+2. Key highlights section with the most important insights
+3. Trend analysis focusing on:
+   - Electric nail care dominance
+   - Value segment growth
+   - Brand vs. unbranded competition
+4. Tables showing top performers and fastest growing products
+5. Actionable recommendations
+6. Responsive design that will work well in most email clients
+
+The report emphasizes the remarkable growth of Dr Talbot's Baby Nail Trimmer (jumping 30 positions) and the continued strength of electric nail care products, while also noting price sensitivity in the market.

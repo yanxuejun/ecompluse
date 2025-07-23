@@ -4,6 +4,7 @@ import path from 'path';
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY!;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY!;
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY!;
 
 export async function POST(req: NextRequest) {
   const { filePath, prompt, model = 'gpt' } = await req.json();
@@ -46,6 +47,33 @@ ${prompt || ''}
     const geminiData = await geminiRes.json();
     html = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
     console.log('[Gemini] Response:', html.slice(0, 1000));
+  } else if (model === 'deepseek') {
+    // Deepseek API
+    console.log('[Deepseek] Request:', fullPrompt.slice(0, 1000));
+    const deepseekRes = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${DEEPSEEK_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant.' },
+          { role: 'user', content: fullPrompt }
+        ],
+        max_tokens: 2048,
+        temperature: 0.7
+      })
+    });
+    if (!deepseekRes.ok) {
+      const errText = await deepseekRes.text();
+      console.log('[Deepseek] Error:', errText);
+      return new Response('Deepseek API error: ' + errText, { status: 500 });
+    }
+    const deepseekData = await deepseekRes.json();
+    html = deepseekData.choices?.[0]?.message?.content || '';
+    console.log('[Deepseek] Response:', html.slice(0, 1000));
   } else {
     // OpenAI GPT
     console.log('[GPT] Request:', fullPrompt.slice(0, 1000));
@@ -75,12 +103,13 @@ ${prompt || ''}
     console.log('[GPT] Response:', html.slice(0, 1000));
   }
 
-  // 4. 保存为 html 文件（与 csv 同目录）
-  const htmlFilePath = absPath.replace(/\.csv$/, '.html');
+  // 4. 保存为 html 文件（与 csv 或 analyzed html 同目录，文件名加模型后缀）
+  const modelSuffix = model ? `_${model}` : '';
+  const htmlFilePath = absPath.replace(/(\.analyzed)?\.html$/, `${modelSuffix}.html`).replace(/\.csv$/, `${modelSuffix}.html`);
   fs.writeFileSync(htmlFilePath, html);
 
   // 5. 返回 HTML 路径
-  const relHtmlPath = filePath.replace(/\.csv$/, '.html');
+  const relHtmlPath = filePath.replace(/(\.analyzed)?\.html$/, `${modelSuffix}.html`).replace(/\.csv$/, `${modelSuffix}.html`);
   return new Response(JSON.stringify({ success: true, html, htmlFile: relHtmlPath }), {
     headers: { 'Content-Type': 'application/json' }
   });

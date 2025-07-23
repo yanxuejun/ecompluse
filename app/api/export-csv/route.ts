@@ -46,17 +46,16 @@ export async function GET(req: NextRequest) {
       const batchQuery = `
         SELECT
           rank, previous_rank, ranking_country, ranking_category, 
-          ARRAY(SELECT name FROM UNNEST(product_title) WHERE locale = 'en' LIMIT 1)[SAFE_OFFSET(0)]
-            AS product_title_en,
-          ARRAY(SELECT name FROM UNNEST(product_title) WHERE locale = 'zh-CN' LIMIT 1)[SAFE_OFFSET(0)]
-            AS product_title_zh,
-          ARRAY(SELECT name FROM UNNEST(product_title) LIMIT 1)[SAFE_OFFSET(0)]
-            AS product_title_any,
           brand,
           FORMAT('%s-%s %s', CAST(price_range.min AS STRING), CAST(price_range.max AS STRING), price_range.currency) AS price_range,
           FORMAT('%s-%s %s', CAST(relative_demand.min AS STRING), CAST(relative_demand.max AS STRING), relative_demand.bucket) AS relative_demand,
           FORMAT('%s-%s %s', CAST(previous_relative_demand.min AS STRING), CAST(previous_relative_demand.max AS STRING), previous_relative_demand.bucket) AS previous_relative_demand,
-          FORMAT_DATE('%Y-%m-%d', DATE(rank_timestamp)) AS rank_timestamp
+          FORMAT_DATE('%Y-%m-%d', DATE(rank_timestamp)) AS rank_timestamp,
+          COALESCE(
+            ARRAY(SELECT name FROM UNNEST(product_title) WHERE locale = 'en' LIMIT 1)[SAFE_OFFSET(0)],
+            ARRAY(SELECT name FROM UNNEST(product_title) WHERE locale = 'zh-CN' LIMIT 1)[SAFE_OFFSET(0)],
+            ARRAY(SELECT name FROM UNNEST(product_title) LIMIT 1)[SAFE_OFFSET(0)]
+          ) AS product_title
         FROM ${tableRef}
         ${whereClause}
         ORDER BY rank ASC
@@ -66,10 +65,10 @@ export async function GET(req: NextRequest) {
       const [rows] = await bigquery.query({ query: batchQuery, params: batchParams });
       if (rows.length === 0) break;
 
-      // 合并 product_title 字段
+      // 只保留 product_title 字段
       const processedRows = rows.map((row: any) => ({
         ...row,
-        product_title: row.product_title_en || row.product_title_zh || row.product_title_any || '',
+        // product_title 字段已直接在 SQL 查询中生成，无需再合并
       }));
       // 写入CSV
       const csv = stringify(processedRows, { header: isFirstBatch });

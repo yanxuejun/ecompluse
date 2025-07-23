@@ -1,0 +1,36 @@
+rank,previous_rank,ranking_country,ranking_category,brand,price_range,relative_demand,previous_relative_demand,rank_timestamp,product_title
+1,1,US,6290,Fridababy,40-40 USD,51-100 Very high,51-100 Very high,2025-07-11,Fridababy Baby Basics Kit
+2,4,US,6290,,9-9 USD,51-100 Very high,51-100 Very high,2025-07-11,Electric Nail File
+3,3,US,6290,Fridababy,13-13 USD,51-100 Very high,51-100 Very high,2025-07-11,NailFrida The SnipperClipper Set
+4,34,US,6290,Dr Talbot's,10-20 USD,21-50 High,0-5 Very low,2025-07-11,Dr Talbot's Baby Nail Trimmer
+5,2,US,6290,Fridababy,28-40 USD,21-50 High,51-100 Very high,2025-07-11,Frida Baby Electric Nail Buffer
+6,7,US,6290,Safety 1st,27-27 USD,21-50 High,21-50 High,2025-07-11,Safety 1st Deluxe Healthcare & Grooming Kit
+7,5,US,6290,CVS,15-16 USD,21-50 High,21-50 High,2025-07-11,CVS Baby Care Kit
+8,6,US,6290,Safety 1st,25-30 USD,21-50 High,21-50 High,2025-07-11,Safety 1st Baby's 1st Sneezy Weezy Kit
+9,,US,6290,,25-25 USD,21-50 High,,2025-07-11,Momcozy Electric Baby Nail File
+10,,US,6290,Fridababy,,21-50 High,,2025-07-11,NailFrida The SnipperClipper Set
+11,8,US,6290,Safety 1st,15-23 USD,11-20 Medium,21-50 High,2025-07-11,Safety 1st Electric Ease Nail File
+12,,US,6290,,100-100 USD,11-20 Medium,,2025-07-11,Momcozy All-in-1 Elite Baby Kit
+13,11,US,6290,,17-22 USD,11-20 Medium,11-20 Medium,2025-07-11,6 in 1 Baby Nail Trimmer Electric Newborn Infant Toddler Safe Electric Nail Clipper with 1 Infant Nail Trimmer 8 Trimmer Head for Newborn Infant
+14,12,US,6290,,17-17 USD,11-20 Medium,11-20 Medium,2025-07-11,Baby Nail Trimmer Electric FANSIDI Baby Nail Clippers Safe Baby Nail File Kit with Extra 12 Replacement Pads
+15,13,US,6290,Safety 1st,20-25 USD,11-20 Medium,11-20 Medium,2025-07-11,Safety 1st Deluxe Healthcare & Grooming Kit
+16,,US,6290,Little Martin's Drawer,,11-20 Medium,,2025-07-11,Little Martin's Baby Electric Nail Trimmer with Light
+17,22,US,6290,,8-9 USD,11-20 Medium,6-10 Low,2025-07-11,"Electric Nail File Drill for Baby No Sharp Claws Hurt, 6 in 1 Safety Cutter Trimmer Clipper for Toes and Fingers"
+18,17,US,6290,Fridababy,100-100 USD,6-10 Low,6-10 Low,2025-07-11,Fridababy Ultimate Baby Kit
+19,20,US,6290,Haakaa,19-19 USD,6-10 Low,6-10 Low,2025-07-11,haakaa Electric Baby Nail File
+20,16,US,6290,Haakaa,19-19 USD,6-10 Low,6-10 Low,2025-07-11,haakaa Baby Nail File Electric Baby Nail Care Set with LED Light
+21,19,US,6290,Safety 1st,25-25 USD,6-10 Low,6-10 Low,2025-07-11,Safety 1st Baby's First Spa Day Kit
+22,21,US,6290,,10-10 USD,6-10 Low,6-10 Low,2025-07-11,"WXA Baby Grooming Kit Infant Safety Care Set with Hair Brush Comb Nail Clipper Nasal Aspirator,Baby Essentials Kit for Newborn Girls Boys"
+23,15,US,6290,CVS,13-13 USD,6-10 Low,6-10 Low,2025-07-11,CVS Health Baby Grooming Kit
+24,23,US,6290,,10-10 USD,6-10 Low,6-10 Low,2025-07-11,"Baby Nail Trimmer Electric-12 in 1 Baby Nail Clippers Safe Baby Nail File Kit with a Nail Clipper, Scissor, Tweezers, and Nail Files"
+25,24,US,6290,Safety 1st,5-6 USD,6-10 Low,0-5 Very low,2025-07-11,Safety 1st Baby Care Basics 4 Piece Infant Essentials Set
+26,9,US,6290,,25-25 USD,6-10 Low,11-20 Medium,2025-07-11,"Momcozy Baby Nail Trimmer, Electric RechargableGentle and Safe"
+27,27,US,6290,赤ちゃん本舗,4-4 USD,6-10 Low,0-5 Very low,2025-07-11,Green Sprouts Baby Nail Brush
+28,,US,6290,Safety 1st,6-8 USD,6-10 Low,,2025-07-11,Safety 1st Baby Care Basics
+29,25,US,6290,Jippli,8-8 USD,6-10 Low,0-5 Very low,2025-07-11,Baby Formula Dispensing Scoops for Infants & Newborns
+30,,US,6290,,7-7 USD,6-10 Low,,2025-07-11,"Baby Nail Trimmer Electric, 21 in 1 Baby Nail Clippers Set, Baby Nail Trimmer with LED Light, Additional 13 Replacement Parts, Baby Nail Care Tools,"
+31,,US,6290,Safety 1st,20-27 USD,0-5 Very low,,2025-07-11,Safety 1st Deluxe Healthcare & Grooming Kit
+32,31,US,6290,,70-70 USD,0-5 Very low,0-5 Very low,2025-07-11,Babylist Baby First Aid & Grooming Kit
+33,28,US,6290,Thumble Baby Care,14-14 USD,0-5 Very low,0-5 Very low,2025-07-11,Baby Nails The Wearable Baby Nail File i New Baby Standard Pack
+34,10,US,6290,Little Martin's Drawer,24-25 USD,0-5 Very low,11-20 Medium,2025-07-11,Little Martin's Baby Electric Nail Trimmer with Light
+36,,US,6290,Pure Enrichment,30-30 USD,0-5 Very low,,2025-07-11,Pure Enrichment PureBaby Electric Nail Trimmer
