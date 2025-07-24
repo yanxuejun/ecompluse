@@ -4,7 +4,7 @@ import path from 'path';
 import Papa from 'papaparse';
 
 // 递归查找 catalog_name
-function findCategoryName(nodes, code) {
+function findCategoryName(nodes: any, code: any): string {
   for (const n of nodes) {
     if (n.code === code) return n.catalog_name;
     if (n.children) {
@@ -38,20 +38,20 @@ export async function POST(req: NextRequest) {
   };
   const rankNum = (v: any) => parseNum(v);
   // 先筛选rank<100且relative_demand>50
-  let topProducts = rows.filter(r => rankNum(r.rank) < 100 && demandNum(r.relative_demand) > 50);
+  let topProducts = rows.filter((r: any) => rankNum(r.rank) < 100 && demandNum(r.relative_demand) > 50);
   // 不足10个则补足
   if (topProducts.length < 10) {
     const extra = rows
-      .filter(r => rankNum(r.rank) < 100 && !topProducts.includes(r))
-      .sort((a, b) => rankNum(a.rank) - rankNum(b.rank));
+      .filter((r: any) => rankNum(r.rank) < 100 && !topProducts.includes(r))
+      .sort((a: any, b: any) => rankNum(a.rank) - rankNum(b.rank));
     topProducts = topProducts.concat(extra.slice(0, 10 - topProducts.length));
   }
   topProducts = topProducts.slice(0, 10);
 
   // Top Performing Products - no brand: 只展示 brand 为空或无效的数据，取前10
   const topNoBrandProducts = rows
-    .filter(r => !r.brand || String(r.brand).trim() === '' || r.brand === 'no brand')
-    .sort((a, b) => rankNum(a.rank) - rankNum(b.rank))
+    .filter((r: any) => !r.brand || String(r.brand).trim() === '' || r.brand === 'no brand')
+    .sort((a: any, b: any) => rankNum(a.rank) - rankNum(b.rank))
     .slice(0, 10);
 
   // 品牌分布（只显示前10，其余合并为“other brands”，brand为空标记为no brand）
@@ -60,15 +60,15 @@ export async function POST(req: NextRequest) {
     const brand = r.brand && String(r.brand).trim() ? r.brand : 'no brand';
     brandCount[brand] = (brandCount[brand] || 0) + 1;
   });
-  const totalBrands = Object.values(brandCount).reduce((a, b) => a + b, 0);
-  const sortedBrands = Object.entries(brandCount).sort((a, b) => b[1] - a[1]);
+  const totalBrands = Object.values(brandCount).reduce((a: any, b: any) => a + b, 0);
+  const sortedBrands = Object.entries(brandCount).sort((a: any, b: any) => b[1] - a[1]);
   const topN = 10;
   const topBrands = sortedBrands.slice(0, topN);
-  const otherCount = sortedBrands.slice(topN).reduce((sum, [, count]) => sum + count, 0);
-  const brandLabels = topBrands.map(([brand]) => brand).concat(otherCount > 0 ? ['other brands'] : []);
-  const brandData = topBrands.map(([, count]) => count).concat(otherCount > 0 ? [otherCount] : []);
+  const otherCount = sortedBrands.slice(topN).reduce((sum: any, [, count]: any) => sum + count, 0);
+  const brandLabels = topBrands.map(([brand]: any) => brand).concat(otherCount > 0 ? ['other brands'] : []);
+  const brandData = topBrands.map(([, count]: any) => count).concat(otherCount > 0 ? [otherCount] : []);
   // 品牌分布表格数据
-  const brandTableRows = topBrands.map(([brand, count]) => ({
+  const brandTableRows = topBrands.map(([brand, count]: any) => ({
     brand,
     share: ((count / totalBrands) * 100).toFixed(1) + '%'
   }));
@@ -98,20 +98,20 @@ export async function POST(req: NextRequest) {
 
   // Fastest Growing Products: 按 previous_rank - rank 倒序排列，取前10
   const growthRows = rows
-    .filter(r => r.rank && r.previous_rank && !isNaN(Number(r.rank)) && !isNaN(Number(r.previous_rank)))
-    .map(r => ({
+    .filter((r: any) => r.rank && r.previous_rank && !isNaN(Number(r.rank)) && !isNaN(Number(r.previous_rank)))
+    .map((r: any) => ({
       ...r,
       rankChange: Number(r.previous_rank) - Number(r.rank),
       demandChange: (r.previous_relative_demand && r.relative_demand && r.previous_relative_demand !== r.relative_demand)
         ? `${r.previous_relative_demand} → ${r.relative_demand}`
         : (r.relative_demand ? `Stable (${r.relative_demand})` : ''),
     }))
-    .sort((a, b) => b.rankChange - a.rankChange)
+    .sort((a: any, b: any) => b.rankChange - a.rankChange)
     .slice(0, 10);
   // 新品（previous_rank 为空）
-  const newEntries = rows.filter(r => (!r.previous_rank || isNaN(Number(r.previous_rank))) && r.rank)
+  const newEntries = rows.filter((r: any) => (!r.previous_rank || isNaN(Number(r.previous_rank))) && r.rank)
     .slice(0, Math.max(0, 10 - growthRows.length))
-    .map(r => ({
+    .map((r: any) => ({
       ...r,
       rankChange: 'New entry',
       demandChange: 'New entry',
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
   }
   // 3. 获取最新rank_timestamp
   const latestRankTimestamp = rows
-    .map(r => r.rank_timestamp)
+    .map((r: any) => r.rank_timestamp)
     .filter(Boolean)
     .sort()
     .reverse()[0] || '';
@@ -175,7 +175,7 @@ export async function POST(req: NextRequest) {
           </tr>
         </thead>
         <tbody>
-          ${topProducts.map(p => `
+          ${topProducts.map((p: any) => `
             <tr>
               <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">${p.rank || ''}</td>
               <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">${p.product_title || ''}</td>
@@ -198,7 +198,7 @@ export async function POST(req: NextRequest) {
           </tr>
         </thead>
         <tbody>
-          ${topNoBrandProducts.map(p => `
+          ${topNoBrandProducts.map((p: any) => `
             <tr>
               <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">${p.rank || ''}</td>
               <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">${p.product_title || ''}</td>
@@ -221,7 +221,7 @@ export async function POST(req: NextRequest) {
           </tr>
         </thead>
         <tbody>
-          ${fastestGrowing.map(p => `
+          ${fastestGrowing.map((p: any) => `
             <tr>
               <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">${p.rank || ''}</td>
               <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">${p.previous_rank || ''}</td>
