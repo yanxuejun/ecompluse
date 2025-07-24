@@ -1,0 +1,50 @@
+---------------
+
+EXPORT DATA
+  -- 1. 配置导出选项
+  OPTIONS(
+    -- 重要：在文件名中使用 * 来分片，以导出大文件
+    uri='gs://mygmcdata/gmcdata-*.csv', 
+    format='CSV',
+    overwrite=true,
+    header=true,
+    field_delimiter=','
+  ) AS (
+
+  -- 2. 使用之前讨论过的 SELECT 语句来查询和扁平化数据
+ SELECT
+  -- 1. 选择常规的简单字段
+  t.rank_timestamp,
+  t.rank,
+  t.previous_rank,
+  t.ranking_country,
+  t.ranking_category,
+  t.product_title[0].name as product_title,
+  t.brand,
+
+  -- 2. 访问非重复的 RECORD (结构体) 字段
+  t.price_range.min AS price_min,
+  t.price_range.max AS price_max,
+  t.price_range.currency AS price_currency,
+  
+  t.relative_demand.min AS relative_demand_min,
+  t.relative_demand.max AS relative_demand_max,
+  t.relative_demand.bucket AS relative_demand_bucket,
+
+  t.previous_relative_demand.min AS previous_relative_demand_min,
+  t.previous_relative_demand.max AS previous_relative_demand_max,
+  t.previous_relative_demand.bucket AS previous_relative_demand_bucket
+
+  
+
+FROM
+  -- !!! 请将下面的表名替换为您自己的表 !!!
+  `gmc-bestseller.new_gmc_data.BestSellers_TopProducts_479974220` AS t
+
+);
+
+
+
+gcloud storage cp gs://mygmcdata/gmcdata-*.csv C:\Users\Yanxuejun\Downloads\gmc_data\
+
+gcloud storage rm gs://BUCKET_NAME/**
