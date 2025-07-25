@@ -3,7 +3,7 @@ const path = require('path');
 const Papa = require('papaparse');
 const { isMainThread, Worker } = require('worker_threads');
 
-console.log('--- 正在运行最终性能优化版本的脚本 ---');
+console.log('--- 正在运行最终内存优化版本的脚本 ---'); 
 
 const dir = path.join(__dirname, '../gmc_data');
 const outputDir = path.join(dir, 'output');
@@ -11,11 +11,15 @@ const outputDir = path.join(dir, 'output');
 if (isMainThread) {
   console.log('主线程启动');
   const os = require('os');
-  // 可调整参数：根据您的 CPU 核心数调整上限
-  const WORKER_COUNT = Math.max(1, Math.min(os.cpus().length, 16)); 
+  const WORKER_COUNT = Math.max(1, Math.min(os.cpus().length, 8));
 
   if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir);
+    try {
+      fs.mkdirSync(outputDir);
+    } catch (err) {
+      console.error('创建输出目录失败:', err);
+      process.exit(1);
+    }
   }
 
   const files = fs.readdirSync(dir)
@@ -33,10 +37,12 @@ if (isMainThread) {
   const fileChunks = Array.from({ length: WORKER_COUNT }, (_, i) => files.slice(i * chunkSize, (i + 1) * chunkSize));
 
   let header = null;
+  // **核心变更 1: 不再需要巨大的 countryData 对象**
+  // const countryData = {};
   
-  // **核心变更 1: 维护一个写入流的 Map**
-  const writeStreams = new Map();
-
+  // **核心变更 2: 新增一个集合，用于跟踪已写入表头的国家文件**
+  const writtenHeaders = new Set();
+  
   let finishedWorkers = 0;
   const totalWorkers = fileChunks.filter(chunk => chunk.length > 0).length;
   const startTime = Date.now();
@@ -46,30 +52,10 @@ if (isMainThread) {
   });
   console.log('所有 worker 已启动，开始并发处理...');
 
-  // **核心变更 2: 确保写入流被正确打开的辅助函数**
-  const ensureWriteStream = (country) => {
-    if (!writeStreams.has(country)) {
-      const outPath = path.join(outputDir, `${country}.csv`);
-      const stream = fs.createWriteStream(outPath, { encoding: 'utf8' });
-      stream.write(Papa.unparse([header], { header: false }) + '\r\n'); // 先写入表头
-      writeStreams.set(country, stream);
-    }
-    return writeStreams.get(country);
-  };
-
-  // **核心变更 3: 最终操作变为关闭所有文件流**
+  // **核心变更 3: 简化 finalize 函数，只负责打印结束日志**
   const finalize = () => {
-    console.log('\n所有 worker 处理完毕，正在关闭文件流...');
-    const closingPromises = [];
-    for (const stream of writeStreams.values()) {
-      const promise = new Promise(resolve => stream.end(resolve));
-      closingPromises.push(promise);
-    }
-    
-    Promise.all(closingPromises).then(() => {
-        const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-        console.log(`全部国家文件已生成并关闭。总用时: ${duration} 秒`);
-    });
+    const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log(`\n全部国家文件已生成。总用时: ${duration} 秒`);
   };
 
   for (const chunk of fileChunks) {
@@ -77,26 +63,45 @@ if (isMainThread) {
 
     const worker = new Worker(path.resolve(__dirname, 'merge_gmc_worker.js'), { workerData: { dir, files: chunk } });
     
-    // **核心变更 4: on 'message' 逻辑改为异步写入流**
+    // **核心变更 4: 重写 on 'message' 逻辑，进行流式写入**
     worker.on('message', ({ header: h, countryData: cData }) => {
       if (!header && h) header = h;
       
       for (const [country, rows] of Object.entries(cData)) {
         if (rows.length === 0) continue;
 
-        const stream = ensureWriteStream(country); // 获取或创建文件流
-        const csvChunk = Papa.unparse(rows, { header: false });
-        stream.write(csvChunk + '\r\n'); // 非阻塞地写入数据
+        // 新增：确保国家目录存在
+        const countryDir = path.join(outputDir, country);
+        if (!fs.existsSync(countryDir)) {
+          fs.mkdirSync(countryDir, { recursive: true });
+        }
+        const outPath = path.join(countryDir, `${country}.csv`);
+        try {
+          if (!writtenHeaders.has(country)) {
+            // 如果这个国家的文件是第一次写入，则包含表头
+            const csv = Papa.unparse(rows, { header: true, columns: header });
+            fs.writeFileSync(outPath, csv, 'utf8');
+            writtenHeaders.add(country);
+          } else {
+            // 如果文件已存在，则不含表头，并且在前面加一个换行符，进行追加
+            const csvChunk = Papa.unparse(rows, { header: false });
+            fs.appendFileSync(outPath, '\r\n' + csvChunk, 'utf8');
+          }
+        } catch(err) {
+            console.error(`写入文件 ${outPath} 时出错:`, err);
+        }
       }
     });
 
-    worker.on('error', err => console.error('Worker 错误:', err));
+    worker.on('error', err => {
+      console.error('Worker 错误:', err);
+    });
 
     worker.on('exit', code => {
       if (code !== 0) console.error(`Worker 异常退出，退出码: ${code}`);
       
       finishedWorkers++;
-      process.stdout.write(`\r进度: ${finishedWorkers}/${totalWorkers} worker 完成`);
+      process.stdout.write(`\r进度: ${finishedWorkers}/${totalWorkers} worker 完成`); // 使用 process.stdout.write 实现单行刷新进度条
       
       if (finishedWorkers === totalWorkers) {
         finalize();
