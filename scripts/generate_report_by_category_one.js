@@ -142,7 +142,8 @@ for (const country of countryDirs) {
       const latestRankTimestamp = rows.map(r => r.rank_timestamp).filter(Boolean).sort().reverse()[0] || '';
       // 只保留日期部分
       const latestDate = latestRankTimestamp.split(' ')[0];
-      const subHeader = `Week of ${latestDate} | ${categoryName} | ${country}`;
+      const currentDate = new Date().toISOString().split('T')[0];
+      const subHeader = `Week of ${currentDate} | ${categoryName} | ${country}`;
 
       // 生成 HTML
       let html = `
@@ -230,7 +231,7 @@ for (const country of countryDirs) {
           </table>
           <h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Brand Distribution</h2>
           ${brandTableHtml}
-          <div style="text-align:center;color:#888;font-size:0.95rem;margin-top:2.5rem;">Data source: <a href="https://www.ecompulsedata.com" style="color:#888;text-decoration:underline;">ecompulsedata.com</a> &copy; ecompulsedata.com All rights reserved.</div>
+          <div style="text-align:center;color:#888;font-size:0.95rem;margin-top:2.5rem;">Data source : Google Merchant Center (GMC) ${latestDate} &copy; ecompulsedata.com All rights reserved.</div>
         </div>
       </div>
       `;

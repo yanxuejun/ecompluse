@@ -359,7 +359,7 @@ function RankImprovementContent() {
           <ul className="text-blue-700 space-y-1 text-sm">
             <li>• <strong>排名改善</strong> = 历史排名 - 当前排名（正值表示上升）</li>
             <li>• 只显示排名上升的产品，按改善幅度降序排列</li>
-            <li>• 数据来源：BestSellers_TopProducts_Optimized 表的 rank_improvement 字段</li>
+            <li>• 数据来源：Google Merchant Center (GMC) 官方数据</li>
             <li>• 基于每周数据，显示最新的排名变化情况</li>
             {categoryId === '123456' && (
               <li>• <strong>全分类模式</strong>：检索所有分类的排名上升产品</li>

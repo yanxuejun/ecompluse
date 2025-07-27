@@ -103,3 +103,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: e?.message || String(e) || '订阅失败', stack: e?.stack }, { status: 500 });
   }
 }
+
+export async function GET(req: NextRequest) {
+  try {
+    const { userId } = await auth();
+    if (!userId) return NextResponse.json({ error: '未登录' }, { status: 401 });
+    const selectQuery = `SELECT categories, keywords FROM ${tableRef} WHERE userid = @userid LIMIT 1`;
+    const options = {
+      query: selectQuery,
+      params: { userid: userId },
+      types: { userid: 'STRING' }
+    };
+    const [rows] = await bigquery.query(options);
+    if (!rows.length) return NextResponse.json({ categories: '', keywords: '' });
+    return NextResponse.json(rows[0]);
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || String(e) || '查询失败' }, { status: 500 });
+  }
+}
