@@ -47,4 +47,6 @@ FROM
 
 gcloud storage cp gs://mygmcdata/gmcdata-*.csv C:\Users\Yanxuejun\Downloads\gmc_data\
 
-gcloud storage rm gs://BUCKET_NAME/**
+gcloud storage rm gs://mygmcdata/**
+
+gcloud auth activate-service-account --key-file=gmc-bestseller.json

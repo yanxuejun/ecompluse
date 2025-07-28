@@ -669,8 +669,7 @@ INSERT INTO `gmc-bestseller.new_gmc_data.BestSellers_TopProducts_Optimized` (
   google_product_category_path,
   price_range,
   relative_demand,
-  previous_relative_demand,
-  rank_improvement
+  previous_relative_demand
 )
 SELECT
   rank_timestamp,
@@ -688,8 +687,7 @@ SELECT
   google_product_category_path,
   price_range,
   relative_demand,
-  previous_relative_demand,
-  rank_improvement
+  previous_relative_demand
 FROM `gmc-bestseller.new_gmc_data.BestSellers_TopProducts_479974220`
 
 
