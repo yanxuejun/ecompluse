@@ -77,7 +77,7 @@ def main():
     # 拼接最终HTML
     final_html = f'''
     <div style="font-family:Arial,sans-serif;">
-      <h2>您的每周订阅报告</h2>
+      <h2></h2>
       {''.join(html_parts)}
     </div>
     '''
@@ -101,7 +101,7 @@ def main():
         data = {
             "from": os.getenv('RESEND_FROM', 'noreply@ecompulsedata.com'),
             "to": [args.email],
-            "subject": "您的每周订阅报告",
+            "subject": "您的每周订阅报告-EcomPulseData",
             "html": final_html
         }
         
