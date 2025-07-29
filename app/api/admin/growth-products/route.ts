@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
   if (maxRelDemand) { where.push('relative_demand.max <= @maxRelDemand'); params.maxRelDemand = Number(maxRelDemand); }
   const productTitle = searchParams.get('productTitle') || '';
   if (productTitle) {
-    where.push('LOWER(product_title) LIKE LOWER(@productTitle)');
+    where.push('EXISTS (SELECT 1 FROM UNNEST(product_title) AS t WHERE LOWER(t.name) LIKE LOWER(@productTitle))');
     params.productTitle = `%${productTitle}%`;
   }
 
