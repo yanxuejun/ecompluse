@@ -18,6 +18,7 @@ export async function GET(req: NextRequest) {
     const country = searchParams.get("country") || "US";
     const category = Number(searchParams.get("category"));
     const type = searchParams.get("type") || "fastest";
+    const productTitle = searchParams.get("productTitle");
     const bq = getBigQueryClient();
 
     // 1. 查最新rank_timestamp
@@ -40,14 +41,15 @@ export async function GET(req: NextRequest) {
       SELECT rank_id, rank, product_title, image_url, rank_improvement, rank_timestamp
       FROM \`${projectId}.${datasetId}.product_week_rank_enriched\`
       WHERE country = @country AND category_id = @category AND DATE(rank_timestamp) = DATE(@latestDate)
+      ${productTitle ? 'AND LOWER(product_title) LIKE LOWER(@productTitle)' : ''}
       ORDER BY ${orderBy}
       LIMIT 10
     `;
     console.log("BigQuery SQL:", sql);
-    console.log("BigQuery Params:", { country, category, latestDate });
+    console.log("BigQuery Params:", { country, category, latestDate, productTitle });
     const [rows] = await bq.query({
       query: sql,
-      params: { country, category, latestDate },
+      params: { country, category, latestDate, ...(productTitle ? { productTitle: `%${productTitle}%` } : {}) },
     });
     console.log("API 返回产品数量:", rows.length);
     console.log("API 返回产品:", rows);

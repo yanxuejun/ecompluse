@@ -23,6 +23,7 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
   const [minRelDemand, setMinRelDemand] = useState('');
   const [maxRelDemand, setMaxRelDemand] = useState('');
   const [hasQueried, setHasQueried] = useState(false);
+  const [productTitle, setProductTitle] = useState('');
 
   useEffect(() => {
     if (hasQueried) {
@@ -44,6 +45,7 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
       if (maxRank) params.append('maxRank', maxRank);
       if (minRelDemand) params.append('minRelDemand', minRelDemand);
       if (maxRelDemand) params.append('maxRelDemand', maxRelDemand);
+      if (productTitle) params.append('productTitle', productTitle);
       params.append('page', String(page));
       params.append('pageSize', String(size));
       const res = await fetch(`/api/admin/growth-products?${params.toString()}`);
@@ -141,6 +143,12 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
         />
         <input className="border px-2 py-1 w-full md:w-auto text-sm" placeholder={language==='zh'?'品牌':'Brand'} value={brand} onChange={e=>setBrand(e.target.value)} />
         <label className="flex items-center gap-1 text-sm"><input type="checkbox" checked={noBrand} onChange={e=>setNoBrand(e.target.checked)} />{language==='zh'?'只看无品牌':'Only No Brand'}</label>
+        <input
+          className="border px-2 py-1 w-full md:w-auto text-sm"
+          placeholder={language==='zh'?'产品名称':'Product Title'}
+          value={productTitle}
+          onChange={e => setProductTitle(e.target.value)}
+        />
         <input className="border px-2 py-1 w-full md:w-24 text-sm" placeholder={language==='zh'?'最低价':'Min Price'} value={minPrice} onChange={e=>setMinPrice(e.target.value)} />
         <input className="border px-2 py-1 w-full md:w-24 text-sm" placeholder={language==='zh'?'最高价':'Max Price'} value={maxPrice} onChange={e=>setMaxPrice(e.target.value)} />
         <input className="border px-2 py-1 w-full md:w-20 text-sm" placeholder={language==='zh'?'最小排名':'Min Rank'} value={minRank} onChange={e=>setMinRank(e.target.value)} />

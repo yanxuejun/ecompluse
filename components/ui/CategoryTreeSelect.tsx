@@ -144,6 +144,18 @@ export default function CategoryTreeSelect({ value, onChange, placeholder = "请
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
+          <div className="flex justify-end px-2 py-1">
+            <button
+              type="button"
+              className="text-xs text-blue-600 hover:underline"
+              onClick={() => {
+                onChange(multiple ? [] : '');
+                setDropdown(false);
+              }}
+            >
+              清空
+            </button>
+          </div>
           <div className="max-h-80 overflow-auto">{renderTree(filterTree(tree))}</div>
         </div>
       )}

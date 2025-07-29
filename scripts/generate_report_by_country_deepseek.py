@@ -149,65 +149,45 @@ def extract_data_from_html(html_content):
     text_content = re.sub(r'\s+', ' ', text_content).strip()
     return text_content
 
-def call_gemini_api(data_text, country, category_name):
-    """调用Gemini API生成总结"""
-    api_key = os.getenv('GEMINI_API_KEY')
+def call_deepseek_api(data_text, country, category_name):
+    """调用DeepSeek API生成总结"""
+    api_key = os.getenv('DEEPSEEK_API_KEY')
     if not api_key:
-        print("  警告: 未设置GEMINI_API_KEY环境变量，跳过AI总结")
+        print("  警告: 未设置DEEPSEEK_API_KEY环境变量，跳过AI总结")
         return None
     
-    prompt = f"""I am an e-commerce operations manager responsible for product selection. Based on the given data, please provide a comprehensive analysis summary of around 100 words.
-
-Data Source: {country} - {category_name}
-Data Content:
-{data_text}
-
-Please analyze the above data from an e-commerce product selection perspective, including:
-1. Market trends and characteristics of popular products
-2. Brand distribution analysis
-3. Price range analysis
-4. Features of fastest-growing products
-5. Product selection recommendations and opportunities
-
-Please respond in English, around 100 words."""
+    prompt = f"""I am an e-commerce operations manager responsible for product selection. Based on the given data, please provide a comprehensive analysis summary of around 500 words.\n\nData Source: {country} - {category_name}\nData Content:\n{data_text}\n\nPlease analyze the above data from an e-commerce product selection perspective, including:\n1. Market trends and characteristics of popular products\n2. Brand distribution analysis\n3. Price range analysis\n4. Features of fastest-growing products\n5. Product selection recommendations and opportunities\n\nPlease respond in English, around 500 words."""
     
     try:
-        # 使用正确的Gemini API端点
-        url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
-        
-        payload = {
-            "contents": [{
-                "parts": [{
-                    "text": prompt
-                }]
-            }],
-            "generationConfig": {
-                "temperature": 0.7,
-                "topK": 40,
-                "topP": 0.95,
-                "maxOutputTokens": 1024
-            }
+        # DeepSeek API端点（假设为v1/chat/completions，需根据实际API文档调整）
+        url = "https://api.deepseek.com/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
         }
-        
-        response = requests.post(url, json=payload, timeout=30)
+        payload = {
+            "model": "deepseek-chat",
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.7,
+            "top_p": 0.95,
+            "max_tokens": 1024
+        }
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
         response.raise_for_status()
-        
         result = response.json()
-        if 'candidates' in result and len(result['candidates']) > 0:
-            content = result['candidates'][0]['content']['parts'][0]['text']
-            
-            # 估算token数（粗略估算：1个中文字符约等于1个token）
+        if 'choices' in result and len(result['choices']) > 0:
+            content = result['choices'][0]['message']['content']
             estimated_tokens = len(prompt) + len(content)
             print(f"  估算token数: {estimated_tokens}")
-            
             return content
         else:
-            print("  Gemini API返回格式异常")
+            print("  DeepSeek API返回格式异常")
             print(f"  API响应: {result}")
             return None
-            
     except Exception as e:
-        print(f"  调用Gemini API失败: {e}")
+        print(f"  调用DeepSeek API失败: {e}")
         if hasattr(e, 'response') and e.response is not None:
             print(f"  错误详情: {e.response.text}")
         return None
@@ -248,7 +228,7 @@ def main():
     parser.add_argument('country', type=str, help='国家代码，如 US, AE 等')
     args = parser.parse_args()
     
-    print("--- 开始运行 generate_report_by_country.py ---")
+    print("--- 开始运行 generate_report_by_country_deepseek.py ---")
     print(f"国家: {args.country}")
     
     # 读取 categories.json
@@ -416,7 +396,7 @@ def main():
         
         sub_header = f"Week of {current_date} | {category_name} | {args.country}"
         
-        # 先调用Gemini API生成总结
+        # 先调用DeepSeek API生成总结
         print("  提取数据内容...")
         # 先生成一个临时的HTML来提取数据
         temp_html = f'''
@@ -512,8 +492,8 @@ def main():
         data_text = extract_data_from_html(temp_html)
         print(f"  提取的数据长度: {len(data_text)} 字符")
         
-        # 调用Gemini API生成总结
-        summary = call_gemini_api(data_text, args.country, category_name)
+        # 调用DeepSeek API生成总结
+        summary = call_deepseek_api(data_text, args.country, category_name)
         
         # 生成最终的HTML（包含总结）
         html = f'''
