@@ -9,7 +9,7 @@ const projectId = process.env.GCP_PROJECT_ID!;
 const datasetId = 'new_gmc_data';
 const tableId = 'BestSellers_TopProducts_479974220';
 const tableRef = `
-  ${'`'}${projectId}.${datasetId}.${tableId}${'`'}
+  \`${projectId}.${datasetId}.${tableId}\`
 `;
 
 export async function GET(req: NextRequest) {
@@ -40,6 +40,11 @@ export async function GET(req: NextRequest) {
   if (maxRank) { where.push('rank <= @maxRank'); params.maxRank = Number(maxRank); }
   if (minRelDemand) { where.push('relative_demand.min >= @minRelDemand'); params.minRelDemand = Number(minRelDemand); }
   if (maxRelDemand) { where.push('relative_demand.max <= @maxRelDemand'); params.maxRelDemand = Number(maxRelDemand); }
+  const productTitle = searchParams.get('productTitle') || '';
+  if (productTitle) {
+    where.push('LOWER(product_title) LIKE LOWER(@productTitle)');
+    params.productTitle = `%${productTitle}%`;
+  }
 
   const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
   const query = `
@@ -74,4 +79,4 @@ export async function GET(req: NextRequest) {
     console.error('BigQuery error:', err);
     return Response.json({ success: false, error: err.message });
   }
-} 
+}
