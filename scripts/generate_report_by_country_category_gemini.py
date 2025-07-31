@@ -58,38 +58,9 @@ Google Merchant Center (GMC) 数据分析报告生成器 - Gemini AI版本
     1. {filename}.analyzed.html - 包含AI分析的完整HTML报告
     2. {filename}.summary.txt - AI生成的文本总结
 
-报告内容:
-    - AI市场分析总结
-    - 顶级表现产品 (Top 10)
-    - 无品牌产品表现
-    - 增长最快的产品
-    - 品牌分布分析
-    - Google Shopping链接
-
-注意事项:
-    1. 确保GEMINI_API_KEY已正确设置
-    2. 网络连接正常以调用Gemini API
-    3. CSV文件格式必须符合GMC标准
-    4. 建议在数据量较大时使用网络稳定的环境
-
-错误处理:
-    - 如果未设置API密钥，脚本会跳过AI分析但继续生成报告
-    - 如果API调用失败，会记录错误但继续处理其他文件
-    - 空文件或格式错误的文件会被跳过
-
-示例输出:
-    处理文件: 1_US_1753199706082.csv
-    读取到 150 行数据
-    提取的数据长度: 2847 字符
-    估算token数: 3124
-    已生成: 1_US_1753199706082.analyzed.html
-    AI总结:
-    [AI生成的市场分析内容]
-    总结已保存: 1_US_1753199706082.summary.txt
-
 作者: ecompulsedata.com
-版本: 1.0
-最后更新: 2025-01-23
+版本: 1.1
+最后更新: 2025-07-31
 """
 
 import os
@@ -318,10 +289,16 @@ def find_category_name(nodes, code):
     return ''
 
 def parse_num(v):
-    """解析数字"""
+    """解析数字，移除货币符号和逗号"""
     if not v:
         return 0
-    return float(str(v).replace(',', '').replace('$', '').replace('£', '').replace('€', '').replace('¥', '').replace('₹', '').replace('₽', '').replace('₩', '').replace('₪', '').replace('₦', '').replace('₨', '').replace('₴', '').replace('₸', '').replace('₺', '').replace('₼', '').replace('₾', '').replace('₿', '').replace(' ', ''))
+    try:
+        # 移除非数字和非小数点的所有字符
+        cleaned_v = re.sub(r'[^\d.]', '', str(v))
+        return float(cleaned_v)
+    except (ValueError, TypeError):
+        return 0
+
 
 def price_range(row):
     """生成价格区间字符串"""
@@ -343,18 +320,15 @@ def main():
     parser.add_argument('categoryid', type=str, nargs='?', help='指定类目ID，如222，只生成US_222.csv的报告')
     args = parser.parse_args()
     
-    print("--- 开始运行 generate_report_by_country.py ---")
+    print("--- 开始运行 generate_report_by_country_gemini.py ---")
     print(f"国家: {args.country}")
     if args.categoryid:
         print(f"指定类目ID: {args.categoryid}")
     
     # 读取 categories.json
     categories_path = Path(__file__).parent.parent / 'public' / 'categories.json'
-    print(f"Categories path: {categories_path}")
-    print(f"Categories file exists: {categories_path.exists()}")
-    
     if not categories_path.exists():
-        print("错误: categories.json 文件不存在！")
+        print(f"错误: categories.json 文件在 {categories_path} 未找到！")
         return
     
     with open(categories_path, 'r', encoding='utf-8') as f:
@@ -364,48 +338,42 @@ def main():
     output_root = Path(__file__).parent.parent / 'gmc_data' / 'output'
     country_dir = output_root / args.country
     
-    print(f"国家目录: {country_dir}")
-    print(f"国家目录存在: {country_dir.exists()}")
-    
     if not country_dir.exists():
         print(f"错误: 国家目录 {country_dir} 不存在！")
         return
     
     # 查找report目录
     report_dir = country_dir / 'report'
-    print(f"Report目录: {report_dir}")
-    print(f"Report目录存在: {report_dir.exists()}")
-    
     if not report_dir.exists():
         print(f"错误: Report目录 {report_dir} 不存在！")
         return
     
     # 查找所有CSV文件
-    csv_files = [f for f in report_dir.iterdir() if f.suffix == '.csv']
+    csv_files = list(report_dir.glob('*.csv'))
     
     # 如果指定了categoryid，只处理匹配的文件
     if args.categoryid:
-        # 过滤文件名完全匹配 US_222.csv 格式的文件
-        filtered_csv_files = []
-        expected_filename = f"{args.country}_{args.categoryid}.csv"
-        for csv_file in csv_files:
-            # 检查文件名是否完全匹配
-            if csv_file.name == expected_filename:
-                filtered_csv_files.append(csv_file)
+        # 文件名格式为 {country}_{categoryid}.csv
+        # 注意：脚本描述中的文件名格式和示例不一致，这里采用更灵活的匹配方式
+        # 匹配以 `_{args.categoryid}.csv` 结尾的文件
+        filtered_csv_files = [f for f in csv_files if f.name.endswith(f'_{args.categoryid}.csv')]
         
+        if not filtered_csv_files:
+             # 如果上述找不到，尝试完全匹配 {country}_{categoryid}.csv
+             exact_match_filename = f"{args.country}_{args.categoryid}.csv"
+             filtered_csv_files = [f for f in csv_files if f.name == exact_match_filename]
+
         csv_files = filtered_csv_files
-        print(f"找到匹配文件 {expected_filename}: {[f.name for f in csv_files]}")
-    else:
-        print(f"找到CSV文件: {[f.name for f in csv_files]}")
     
     if not csv_files:
         if args.categoryid:
-            expected_filename = f"{args.country}_{args.categoryid}.csv"
-            print(f"错误: 在Report目录 {report_dir} 中没有找到文件 {expected_filename}！")
+            print(f"错误: 在Report目录 {report_dir} 中没有找到与类目ID '{args.categoryid}' 相关的CSV文件！")
         else:
             print(f"错误: 在Report目录 {report_dir} 中没有找到CSV文件！")
         return
     
+    print(f"找到 {len(csv_files)} 个待处理文件: {[f.name for f in csv_files]}")
+
     start_time = datetime.now()
     total_files_processed = 0
     
@@ -416,12 +384,16 @@ def main():
         
         # 读取CSV数据
         rows = []
-        with open(csv_path, 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row.get('product_title'):
-                    rows.append(row)
-        
+        try:
+            with open(csv_path, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row.get('product_title'):
+                        rows.append(row)
+        except Exception as e:
+            print(f"  读取文件失败: {e}")
+            continue
+
         print(f"  读取到 {len(rows)} 行数据")
         
         if not rows:
@@ -430,10 +402,9 @@ def main():
         
         # Top 10 产品（按rank排序，取前十，product_title唯一）
         def rank_num(v):
-            return parse_num(v)
-        
-        # 按rank升序排序
-        sorted_rows = sorted(rows, key=lambda x: rank_num(x.get('rank', 0)))
+            return int(parse_num(v.get('rank', 0))) if v.get('rank') else sys.maxsize
+
+        sorted_rows = sorted(rows, key=rank_num)
         seen_titles = set()
         top_products = []
         for r in sorted_rows:
@@ -445,7 +416,7 @@ def main():
         
         # Top Performing Products - no brand
         top_no_brand_products = [r for r in rows if not r.get('brand') or str(r.get('brand', '')).strip() == '' or r.get('brand') == 'no brand']
-        top_no_brand_products = sorted(top_no_brand_products, key=lambda x: rank_num(x.get('rank', 0)))[:10]
+        top_no_brand_products = sorted(top_no_brand_products, key=rank_num)[:10]
         
         # 品牌分布
         brand_count = {}
@@ -454,15 +425,18 @@ def main():
             brand_count[brand] = brand_count.get(brand, 0) + 1
         
         total_brands = sum(brand_count.values())
-        sorted_brands = sorted(brand_count.items(), key=lambda x: x[1], reverse=True)
-        top_n = 10
-        top_brands = sorted_brands[:top_n]
-        other_count = sum(count for _, count in sorted_brands[top_n:])
-        
-        brand_table_rows = [{'brand': brand, 'share': f'{(count / total_brands * 100):.1f}%'} for brand, count in top_brands]
-        if other_count > 0:
-            brand_table_rows.append({'brand': 'other brands', 'share': f'{(other_count / total_brands * 100):.1f}%'})
-        
+        if total_brands > 0:
+            sorted_brands = sorted(brand_count.items(), key=lambda x: x[1], reverse=True)
+            top_n = 10
+            top_brands = sorted_brands[:top_n]
+            other_count = sum(count for _, count in sorted_brands[top_n:])
+            
+            brand_table_rows = [{'brand': brand, 'share': f'{(count / total_brands * 100):.1f}%'} for brand, count in top_brands]
+            if other_count > 0:
+                brand_table_rows.append({'brand': 'other brands', 'share': f'{(other_count / total_brands * 100):.1f}%'})
+        else:
+            brand_table_rows = []
+
         brand_table_html = f'''<table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">
         <thead>
           <tr style="background:#f5f7fa;color:#222;font-size:1rem;">
@@ -471,12 +445,13 @@ def main():
           </tr>
         </thead>
         <tbody>
-          {''.join([f'''
-            <tr>
-              <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{row['brand']}</td>
-              <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{row['share']}</td>
-            </tr>
-          ''' for row in brand_table_rows])}
+          {''.join([
+            f"<tr>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{row['brand']}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{row['share']}</td>"
+            f"</tr>"
+            for row in brand_table_rows
+          ])}
         </tbody>
       </table>'''
         
@@ -484,7 +459,7 @@ def main():
         growth_rows = []
         for r in rows:
             if (r.get('rank') and r.get('previous_rank') and 
-                not str(r['rank']).strip() == '' and not str(r['previous_rank']).strip() == ''):
+                str(r['rank']).strip() and str(r['previous_rank']).strip()):
                 try:
                     rank_change = int(r['previous_rank']) - int(r['rank'])
                     demand_change = ''
@@ -502,13 +477,13 @@ def main():
                 except (ValueError, TypeError):
                     continue
         
-        growth_rows = sorted(growth_rows, key=lambda x: x['rank_change'], reverse=True)[:10]
+        growth_rows = sorted(growth_rows, key=lambda x: x.get('rank_change', 0), reverse=True)[:10]
         
         # 新品
         new_entries = []
         for r in rows:
-            if ((not r.get('previous_rank') or str(r.get('previous_rank', '')).strip() == '') and 
-                r.get('rank') and str(r.get('rank', '')).strip() != ''):
+            if ((not r.get('previous_rank') or not str(r.get('previous_rank', '')).strip()) and 
+                (r.get('rank') and str(r.get('rank', '')).strip())):
                 new_entries.append({
                     **r,
                     'rank_change': 'New entry',
@@ -525,104 +500,87 @@ def main():
         current_date = datetime.now().strftime('%Y-%m-%d')
         
         # 从文件名提取类目ID
-        filename_parts = csv_file.stem.split('_')
-        category_id = filename_parts[-1] if len(filename_parts) > 1 else ''
-        category_name = get_category_name(categories, category_id) if category_id else ''
+        category_id_from_file = csv_file.stem.split('_')[-1]
+        category_name = get_category_name(categories, category_id_from_file)
         
         sub_header = f"Week of {current_date} | {category_name} | {args.country}"
         
-        # 先调用Gemini API生成总结
         print("  提取数据内容...")
-        # 先生成一个临时的HTML来提取数据
-        temp_html = f'''
-      <div style="background:#f7f9fa;padding:40px 0 0 0;min-height:100vh;">
-        <div style="max-width:900px;margin:0 auto;background:#fff;padding:32px 32px 48px 32px;border-radius:8px;box-shadow:0 2px 8px #0001;">
-          <div style="text-align:center;margin-bottom:1.5rem;"><img src="https://www.ecompulsedata.com/logo-footer.png" alt="logo" style="height:48px;"></div>
-          <h1 style="font-size:2.5rem;font-weight:700;text-align:center;color:#2a3b4d;margin-bottom:0.5rem;">E-Commerce Trend Report</h1>
-          <div style="text-align:center;color:#444;font-size:1.1rem;margin-bottom:2.5rem;">{sub_header}</div>
-          <h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Top Performing Products</h2>
-          <table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">
-            <thead>
-              <tr style="background:#f5f7fa;color:#222;font-size:1rem;">
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Product</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Category</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Price</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Demand</th>
-              </tr>
-            </thead>
-            <tbody>
-              {''.join([f'''
-                <tr>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('rank', '')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;"><a href="{get_shopping_url(p.get('product_title', ''), args.country)}" target="_blank" rel="noopener noreferrer" style="color:#2196f3;text-decoration:none;">{p.get('product_title', '')}</a></td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('brand', '-')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{get_category_name(categories, p.get('ranking_category', ''))}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{price_range(p)}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('relative_demand_bucket', '')}</td>
-                </tr>
-              ''' for p in top_products])}
-            </tbody>
-          </table>
-          <h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Top Performing Products - no brand</h2>
-          <table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">
-            <thead>
-              <tr style="background:#f5f7fa;color:#222;font-size:1rem;">
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Product</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Category</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Price</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Demand</th>
-              </tr>
-            </thead>
-            <tbody>
-              {''.join([f'''
-                <tr>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('rank', '')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;"><a href="{get_shopping_url(p.get('product_title', ''), args.country)}" target="_blank" rel="noopener noreferrer" style="color:#2196f3;text-decoration:none;">{p.get('product_title', '')}</a></td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('brand', '-')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{get_category_name(categories, p.get('ranking_category', ''))}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{price_range(p)}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('relative_demand_bucket', '')}</td>
-                </tr>
-              ''' for p in top_no_brand_products])}
-            </tbody>
-          </table>
-          <h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Fastest Growing Products</h2>
-          <table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">
-            <thead>
-              <tr style="background:#f5f7fa;color:#222;font-size:1rem;">
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Previous Rank</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Product</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Category</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank Change</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Demand Change</th>
-              </tr>
-            </thead>
-            <tbody>
-              {''.join([f'''
-                <tr>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('rank', '')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('previous_rank', '')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;"><a href="{get_shopping_url(p.get('product_title', ''), args.country)}" target="_blank" rel="noopener noreferrer" style="color:#2196f3;text-decoration:none;">{p.get('product_title', '')}</a></td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('brand', '-')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{get_category_name(categories, p.get('ranking_category', ''))}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;color:{'#1dbf73' if isinstance(p.get('rank_change'), int) and p.get('rank_change', 0) > 0 else '#888'};font-weight:600;">{p.get('rank_change', '')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;color:{'#1dbf73' if p.get('demand_change', '').find('→') != -1 else '#888'};font-weight:600;">{p.get('demand_change', '')}</td>
-                </tr>
-              ''' for p in fastest_growing])}
-            </tbody>
-          </table>
-          <h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Brand Distribution</h2>
-          {brand_table_html}
-          <div style="text-align:center;color:#888;font-size:0.95rem;margin-top:2.5rem;">Data source : Google Merchant Center (GMC) {latest_date} &copy; ecompulsedata.com All rights reserved.</div>
-        </div>
-      </div>
-      '''
+        # 生成各表格 HTML 片段
+        top_products_html = ''.join([
+            f"<tr>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('rank', '')}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'><a href=\"{get_shopping_url(p.get('product_title', ''), args.country)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#2196f3;text-decoration:none;\">{p.get('product_title', '')}</a></td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('brand', '-')}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{get_category_name(categories, p.get('ranking_category', ''))}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{price_range(p)}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('relative_demand_bucket', '')}</td>"
+            f"</tr>"
+            for p in top_products
+        ])
+        top_no_brand_products_html = ''.join([
+            f"<tr>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('rank', '')}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'><a href=\"{get_shopping_url(p.get('product_title', ''), args.country)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#2196f3;text-decoration:none;\">{p.get('product_title', '')}</a></td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('brand', '-')}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{get_category_name(categories, p.get('ranking_category', ''))}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{price_range(p)}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('relative_demand_bucket', '')}</td>"
+            f"</tr>"
+            for p in top_no_brand_products
+        ])
+        fastest_growing_html = ''.join([
+            f"<tr>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('rank', '')}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('previous_rank', '')}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'><a href=\"{get_shopping_url(p.get('product_title', ''), args.country)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#2196f3;text-decoration:none;\">{p.get('product_title', '')}</a></td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('brand', '-')}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{get_category_name(categories, p.get('ranking_category', ''))}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;color:{'#1dbf73' if isinstance(p.get('rank_change'), int) and p.get('rank_change', 0) > 0 else '#888'};font-weight:600;'>{p.get('rank_change', '')}</td>"
+            f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;color:{'#1dbf73' if '→' in str(p.get('demand_change', '')) else '#888'};font-weight:600;'>{p.get('demand_change', '')}</td>"
+            f"</tr>"
+            for p in fastest_growing
+        ])
+
+        # 定义“热门产品”和“无品牌产品”的表头
+        header_top_products = '''
+        <thead>
+          <tr style="background:#f5f7fa;color:#222;font-size:1rem;">
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank</th>
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Product</th>
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th>
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Category</th>
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Price</th>
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Demand</th>
+          </tr>
+        </thead>
+        '''
+
+        # 定义“增长最快产品”的表头
+        header_fastest_growing = '''
+        <thead>
+          <tr style="background:#f5f7fa;color:#222;font-size:1rem;">
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank</th>
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Previous Rank</th>
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Product</th>
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th>
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Category</th>
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank Change</th>
+            <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Demand Change</th>
+          </tr>
+        </thead>
+        '''
+
+        # temp_html 拼接，用于提取文本给AI
+        temp_html = (
+            f'<h2 style="color:#2196f3;">Top Performing Products</h2>'
+            f'<table style="width:100%;">{header_top_products}<tbody>{top_products_html}</tbody></table>'
+            f'<h2 style="color:#2196f3;">Top Performing Products - no brand</h2>'
+            f'<table style="width:100%;">{header_top_products}<tbody>{top_no_brand_products_html}</tbody></table>'
+            f'<h2 style="color:#2196f3;">Fastest Growing Products</h2>'
+            f'<table style="width:100%;">{header_fastest_growing}<tbody>{fastest_growing_html}</tbody></table>'
+            f'<h2 style="color:#2196f3;">Brand Distribution</h2>{brand_table_html}'
+        )
         
         data_text = extract_data_from_html(temp_html)
         print(f"  提取的数据长度: {len(data_text)} 字符")
@@ -630,110 +588,42 @@ def main():
         # 调用Gemini API生成总结
         summary = call_gemini_api(data_text, args.country, category_name)
         
+        # 生成AI总结的HTML部分
+        summary_html = ''
+        if summary:
+            summary_html = (
+                '<div style="background:linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);color:#374151;padding:24px;border-radius:12px;margin-bottom:2.5rem;box-shadow:0 4px 12px rgba(0,0,0,0.1);border:1px solid #e5e7eb;">'
+                '<h3 style="margin:0 0 16px 0;font-size:1.3rem;font-weight:600;color:#1f2937;display:flex;align-items:center;">'
+                '<span style="background:#3b82f6;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:12px;font-weight:700;font-size:1.1rem;">AI</span>'
+                'Market Analysis Summary'
+                '</h3>'
+                f'<div style="line-height:1.8;font-size:1rem;color:#4b5563;text-align:justify;">{summary.replace(chr(10), "<br>")}</div>'
+                '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #d1d5db;font-size:0.9rem;color:#6b7280;font-style:italic;">'
+                '💡 Generated based on Google Merchant Center data analysis'
+                '</div>'
+                '</div>'
+            )
+        
         # 生成最终的HTML（包含总结）
-        html = f'''
-      <div style="background:#f7f9fa;padding:40px 0 0 0;min-height:100vh;">
-        <div style="max-width:900px;margin:0 auto;background:#fff;padding:32px 32px 48px 32px;border-radius:8px;box-shadow:0 2px 8px #0001;">
-          <div style="text-align:center;margin-bottom:1.5rem;"><img src="https://www.ecompulsedata.com/logo-footer.png" alt="logo" style="height:48px;"></div>
-          <h1 style="font-size:2.5rem;font-weight:700;text-align:center;color:#2a3b4d;margin-bottom:0.5rem;">E-Commerce Trend Report</h1>
-          <div style="text-align:center;color:#444;font-size:1.1rem;margin-bottom:2.5rem;">{sub_header}</div>
-          {f'''
-          <div style="background:linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);color:#374151;padding:24px;border-radius:12px;margin-bottom:2.5rem;box-shadow:0 4px 12px rgba(0,0,0,0.1);border:1px solid #e5e7eb;">
-            <h3 style="margin:0 0 16px 0;font-size:1.3rem;font-weight:600;color:#1f2937;display:flex;align-items:center;">
-              <span style="background:#3b82f6;color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:12px;font-weight:700;font-size:1.1rem;">AI</span>
-              Market Analysis Summary
-            </h3>
-            <div style="line-height:1.8;font-size:1rem;color:#4b5563;text-align:justify;">
-              {summary.replace(chr(10), '<br>')}
-            </div>
-            <div style="margin-top:16px;padding-top:16px;border-top:1px solid #d1d5db;font-size:0.9rem;color:#6b7280;font-style:italic;">
-              💡 Generated based on Google Merchant Center data analysis
-            </div>
-          </div>
-          ''' if summary else ''}
-          <h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Top Performing Products</h2>
-          <table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">
-            <thead>
-              <tr style="background:#f5f7fa;color:#222;font-size:1rem;">
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Product</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Category</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Price</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Demand</th>
-              </tr>
-            </thead>
-            <tbody>
-              {''.join([f'''
-                <tr>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('rank', '')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;"><a href="{get_shopping_url(p.get('product_title', ''), args.country)}" target="_blank" rel="noopener noreferrer" style="color:#2196f3;text-decoration:none;">{p.get('product_title', '')}</a></td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('brand', '-')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{get_category_name(categories, p.get('ranking_category', ''))}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{price_range(p)}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('relative_demand_bucket', '')}</td>
-                </tr>
-              ''' for p in top_products])}
-            </tbody>
-          </table>
-          <h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Top Performing Products - no brand</h2>
-          <table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">
-            <thead>
-              <tr style="background:#f5f7fa;color:#222;font-size:1rem;">
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Product</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Category</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Price</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Demand</th>
-              </tr>
-            </thead>
-            <tbody>
-              {''.join([f'''
-                <tr>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('rank', '')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;"><a href="{get_shopping_url(p.get('product_title', ''), args.country)}" target="_blank" rel="noopener noreferrer" style="color:#2196f3;text-decoration:none;">{p.get('product_title', '')}</a></td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('brand', '-')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{get_category_name(categories, p.get('ranking_category', ''))}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{price_range(p)}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('relative_demand_bucket', '')}</td>
-                </tr>
-              ''' for p in top_no_brand_products])}
-            </tbody>
-          </table>
-          <h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Fastest Growing Products</h2>
-          <table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">
-            <thead>
-              <tr style="background:#f5f7fa;color:#222;font-size:1rem;">
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Previous Rank</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Product</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Category</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank Change</th>
-                <th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Demand Change</th>
-              </tr>
-            </thead>
-            <tbody>
-              {''.join([f'''
-                <tr>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('rank', '')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('previous_rank', '')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;"><a href="{get_shopping_url(p.get('product_title', ''), args.country)}" target="_blank" rel="noopener noreferrer" style="color:#2196f3;text-decoration:none;">{p.get('product_title', '')}</a></td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{p.get('brand', '-')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;">{get_category_name(categories, p.get('ranking_category', ''))}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;color:{'#1dbf73' if isinstance(p.get('rank_change'), int) and p.get('rank_change', 0) > 0 else '#888'};font-weight:600;">{p.get('rank_change', '')}</td>
-                  <td style="padding:8px 12px;border-bottom:1px solid #e0e3e8;color:{'#1dbf73' if p.get('demand_change', '').find('→') != -1 else '#888'};font-weight:600;">{p.get('demand_change', '')}</td>
-                </tr>
-              ''' for p in fastest_growing])}
-            </tbody>
-          </table>
-          <h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Brand Distribution</h2>
-          {brand_table_html}
-          <div style="text-align:center;color:#888;font-size:0.95rem;margin-top:2.5rem;">Data source : Google Merchant Center (GMC) {latest_date} &copy; ecompulsedata.com All rights reserved.</div>
-        </div>
-      </div>
-      '''
+        html = (
+            f'<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>E-Commerce Trend Report: {category_name}</title></head><body>'
+            f'<div style="background:#f7f9fa;padding:40px 0;min-height:100vh;font-family:sans-serif;">'
+            f'<div style="max-width:900px;margin:0 auto;background:#fff;padding:32px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">'
+            f'<div style="text-align:center;margin-bottom:1.5rem;"><img src="https://www.ecompulsedata.com/logo-footer.png" alt="logo" style="height:48px;"></div>'
+            f'<h1 style="font-size:2.5rem;font-weight:700;text-align:center;color:#2a3b4d;margin-bottom:0.5rem;">E-Commerce Trend Report</h1>'
+            f'<div style="text-align:center;color:#444;font-size:1.1rem;margin-bottom:2.5rem;">{sub_header}</div>'
+            f'{summary_html}'
+            f'<h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Top Performing Products</h2>'
+            f'<table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">{header_top_products}<tbody>{top_products_html}</tbody></table>'
+            f'<h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Top Performing Products - no brand</h2>'
+            f'<table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">{header_top_products}<tbody>{top_no_brand_products_html}</tbody></table>'
+            f'<h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Fastest Growing Products</h2>'
+            f'<table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">{header_fastest_growing}<tbody>{fastest_growing_html}</tbody></table>'
+            f'<h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Brand Distribution</h2>'
+            f'{brand_table_html}'
+            f'<div style="text-align:center;color:#888;font-size:0.95rem;margin-top:2.5rem;">Data source : Google Merchant Center (GMC) {latest_date} &copy; ecompulsedata.com All rights reserved.</div>'
+            f'</div></div></body></html>'
+        )
         
         # 保存 HTML
         html_file_path = csv_path.with_suffix('.analyzed.html')
@@ -763,4 +653,4 @@ def main():
     print(f"处理文件数: {total_files_processed}")
 
 if __name__ == "__main__":
-    main() 
+    main()
