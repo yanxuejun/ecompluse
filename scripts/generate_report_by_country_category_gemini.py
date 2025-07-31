@@ -1,3 +1,97 @@
+"""
+Google Merchant Center (GMC) 数据分析报告生成器 - Gemini AI版本
+
+功能描述:
+    此脚本用于分析指定国家的Google Merchant Center数据，生成包含AI分析的HTML报告。
+    脚本会处理指定国家目录下的所有CSV文件，为每个类目生成详细的市场分析报告。
+
+主要功能:
+    1. 读取指定国家的GMC数据CSV文件
+    2. 分析产品排名、品牌分布、增长趋势等
+    3. 调用Gemini AI API生成市场分析总结
+    4. 生成美观的HTML报告文件
+
+前置要求:
+    1. Python 3.7+
+    2. 安装必要的Python包: requests, pathlib
+    3. 设置GEMINI_API_KEY环境变量
+    4. 确保数据目录结构正确
+
+环境变量设置:
+    export GEMINI_API_KEY="your_gemini_api_key_here"
+    
+    或者在Windows PowerShell中:
+    $env:GEMINI_API_KEY="your_gemini_api_key_here"
+
+目录结构要求:
+    gmc_data/
+    └── output/
+        └── {country_code}/
+            └── report/
+                ├── {category_id}_{timestamp}.csv
+                ├── {category_id}_{timestamp}.csv
+                └── ...
+
+使用方法:
+    1. 基本用法:
+       python generate_report_by_country_gemini.py US
+    
+    2. 指定类目ID:
+       python generate_report_by_country_gemini.py US 222
+    
+    3. 查看帮助:
+       python generate_report_by_country_gemini.py --help
+
+参数说明:
+    country: 国家代码 (必需)
+        - US: 美国
+        - AE: 阿联酋
+        - GB: 英国
+        - DE: 德国
+        - 等等...
+    
+    categoryid: 指定类目ID (可选)
+        - 如: 222，只生成 US_222.csv 的报告
+        - 文件名必须完全匹配 {country}_{categoryid}.csv 格式
+
+输出文件:
+    1. {filename}.analyzed.html - 包含AI分析的完整HTML报告
+    2. {filename}.summary.txt - AI生成的文本总结
+
+报告内容:
+    - AI市场分析总结
+    - 顶级表现产品 (Top 10)
+    - 无品牌产品表现
+    - 增长最快的产品
+    - 品牌分布分析
+    - Google Shopping链接
+
+注意事项:
+    1. 确保GEMINI_API_KEY已正确设置
+    2. 网络连接正常以调用Gemini API
+    3. CSV文件格式必须符合GMC标准
+    4. 建议在数据量较大时使用网络稳定的环境
+
+错误处理:
+    - 如果未设置API密钥，脚本会跳过AI分析但继续生成报告
+    - 如果API调用失败，会记录错误但继续处理其他文件
+    - 空文件或格式错误的文件会被跳过
+
+示例输出:
+    处理文件: 1_US_1753199706082.csv
+    读取到 150 行数据
+    提取的数据长度: 2847 字符
+    估算token数: 3124
+    已生成: 1_US_1753199706082.analyzed.html
+    AI总结:
+    [AI生成的市场分析内容]
+    总结已保存: 1_US_1753199706082.summary.txt
+
+作者: ecompulsedata.com
+版本: 1.0
+最后更新: 2025-01-23
+"""
+
 import os
 import json
 import csv
@@ -246,10 +340,13 @@ def main():
     # 解析命令行参数
     parser = argparse.ArgumentParser(description='生成国家report目录下所有CSV的HTML报表')
     parser.add_argument('country', type=str, help='国家代码，如 US, AE 等')
+    parser.add_argument('categoryid', type=str, nargs='?', help='指定类目ID，如222，只生成US_222.csv的报告')
     args = parser.parse_args()
     
     print("--- 开始运行 generate_report_by_country.py ---")
     print(f"国家: {args.country}")
+    if args.categoryid:
+        print(f"指定类目ID: {args.categoryid}")
     
     # 读取 categories.json
     categories_path = Path(__file__).parent.parent / 'public' / 'categories.json'
@@ -285,10 +382,28 @@ def main():
     
     # 查找所有CSV文件
     csv_files = [f for f in report_dir.iterdir() if f.suffix == '.csv']
-    print(f"找到CSV文件: {[f.name for f in csv_files]}")
+    
+    # 如果指定了categoryid，只处理匹配的文件
+    if args.categoryid:
+        # 过滤文件名完全匹配 US_222.csv 格式的文件
+        filtered_csv_files = []
+        expected_filename = f"{args.country}_{args.categoryid}.csv"
+        for csv_file in csv_files:
+            # 检查文件名是否完全匹配
+            if csv_file.name == expected_filename:
+                filtered_csv_files.append(csv_file)
+        
+        csv_files = filtered_csv_files
+        print(f"找到匹配文件 {expected_filename}: {[f.name for f in csv_files]}")
+    else:
+        print(f"找到CSV文件: {[f.name for f in csv_files]}")
     
     if not csv_files:
-        print(f"错误: 在Report目录 {report_dir} 中没有找到CSV文件！")
+        if args.categoryid:
+            expected_filename = f"{args.country}_{args.categoryid}.csv"
+            print(f"错误: 在Report目录 {report_dir} 中没有找到文件 {expected_filename}！")
+        else:
+            print(f"错误: 在Report目录 {report_dir} 中没有找到CSV文件！")
         return
     
     start_time = datetime.now()

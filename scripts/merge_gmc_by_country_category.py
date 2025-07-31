@@ -1,3 +1,50 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+GMC数据按国家和类目合并处理脚本
+
+功能说明:
+    此脚本用于从GMC数据中按指定国家和类目ID筛选产品数据，并生成合并后的CSV报告文件。
+    脚本会递归查找指定类目的所有子类目，并将匹配的产品数据合并到一个CSV文件中。
+
+使用前提:
+    1. 确保存在 gmc_data/output/{country}/ 目录结构
+    2. 确保存在 public/categories.json 文件（包含类目层级结构）
+    3. 目标国家目录下应包含CSV格式的GMC数据文件
+
+使用方法:
+    python merge_gmc_by_country_category.py <country_code> <category_id>
+
+参数说明:
+    country_code: 国家代码，如 US（美国）、AE（阿联酋）、GB（英国）等
+    category_id: 类目ID，如 5406（电子产品）、1420（服装）等
+
+使用示例:
+    # 处理美国电子产品类目
+    python merge_gmc_by_country_category.py US 5406
+    
+    # 处理阿联酋服装类目
+    python merge_gmc_by_country_category.py AE 1420
+    
+    # 处理英国家居用品类目
+    python merge_gmc_by_country_category.py GB 166
+
+输出结果:
+    - 输出文件位置: gmc_data/output/{country}/report/{country}_{category_id}.csv
+    - 包含指定类目及其所有子类目的产品数据
+    - 保持原始CSV文件的列结构
+
+注意事项:
+    - 脚本会自动创建输出目录
+    - 如果输出文件已存在，会被覆盖
+    - 支持大文件流式处理，内存占用较低
+    - 会显示处理进度和统计信息
+
+作者: [作者名称]
+创建时间: [创建时间]
+版本: 1.0
+"""
+
 import os
 import json
 import csv
