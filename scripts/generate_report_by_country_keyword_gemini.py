@@ -166,7 +166,7 @@ def main():
         print(f"错误: 未找到 {keyword_csv_path}")
         return
 
-    # 读取CSV数据（不再筛选 keyword 字段，直接处理所有行）
+    # 读取CSV数据
     rows = []
     with open(keyword_csv_path, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
@@ -177,7 +177,7 @@ def main():
         print(f"  文件 {keyword_csv_path} 无数据，跳过")
         return
 
-    # Top 10 产品（按rank排序，取前十，product_title唯一）
+    # Top 10 产品
     def rank_num(v):
         return parse_num(v)
     sorted_rows = sorted(rows, key=lambda x: rank_num(x.get('rank', 0)))
@@ -189,9 +189,11 @@ def main():
             seen_titles.add(r['product_title'])
         if len(top_products) >= 10:
             break
+
     # Top Performing Products - no brand
     top_no_brand_products = [r for r in rows if not r.get('brand') or str(r.get('brand', '')).strip() == '' or r.get('brand') == 'no brand']
     top_no_brand_products = sorted(top_no_brand_products, key=lambda x: rank_num(x.get('rank', 0)))[:10]
+
     # 品牌分布
     brand_count = {}
     for r in rows:
@@ -205,7 +207,6 @@ def main():
     brand_table_rows = [{'brand': brand, 'share': f'{(count / total_brands * 100):.1f}%'} for brand, count in top_brands]
     if other_count > 0:
         brand_table_rows.append({'brand': 'other brands', 'share': f'{(other_count / total_brands * 100):.1f}%'})
-    
     
     # Fastest Growing Products
     growth_rows = []
@@ -228,6 +229,7 @@ def main():
             except (ValueError, TypeError):
                 continue
     growth_rows = sorted(growth_rows, key=lambda x: x['rank_change'], reverse=True)[:10]
+
     # 新品
     new_entries = []
     for r in rows:
@@ -241,126 +243,33 @@ def main():
     new_entries = new_entries[:max(0, 10 - len(growth_rows))]
     fastest_growing = growth_rows + new_entries
     fastest_growing = fastest_growing[:10]
-    # 最新rank_timestamp
+
+    # 最新rank_timestamp 和日期
     latest_rank_timestamp = max([r.get('rank_timestamp', '') for r in rows if r.get('rank_timestamp')], default='')
     latest_date = latest_rank_timestamp.split(' ')[0] if latest_rank_timestamp else ''
     current_date = datetime.now().strftime('%Y-%m-%d')
-    # 报表副标题
     sub_header = f"Week of {current_date} | {args.keyword} | {args.country}"
-    # 先调用Gemini API生成总结，拼接完整报表HTML用于AI分析
-    print("  提取数据内容...")
-    # 品牌分布表格 HTML
-    brand_table_rows_html = ''.join([
-        f"<tr>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{row['brand']}</td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{row['share']}</td>"
-        f"</tr>"
-        for row in brand_table_rows
-    ])
-    brand_table_html = (
-        '<table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">'
-        '<thead>'
-        '<tr style="background:#f5f7fa;color:#222;font-size:1rem;">'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Share</th>'
-        '</tr>'
-        '</thead>'
-        f'<tbody>{brand_table_rows_html}</tbody>'
-        '</table>'
-    )
-    # Top Performing Products
-    top_products_html = ''.join([
-        f"<tr>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('rank', '')}</td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'><a href=\"{get_shopping_url(p.get('product_title', ''), args.country)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#2196f3;text-decoration:none;\">{p.get('product_title', '')}</a></td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('brand', '-')}</td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{price_range(p)}</td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('relative_demand_bucket', '')}</td>"
-        f"</tr>"
-        for p in top_products
-    ])
-    # Top Performing Products - no brand
-    top_no_brand_products_html = ''.join([
-        f"<tr>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('rank', '')}</td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'><a href=\"{get_shopping_url(p.get('product_title', ''), args.country)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#2196f3;text-decoration:none;\">{p.get('product_title', '')}</a></td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('brand', '-')}</td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{price_range(p)}</td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('relative_demand_bucket', '')}</td>"
-        f"</tr>"
-        for p in top_no_brand_products
-    ])
-    # Fastest Growing Products
-    fastest_growing_html = ''.join([
-        f"<tr>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('rank', '')}</td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('previous_rank', '')}</td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'><a href=\"{get_shopping_url(p.get('product_title', ''), args.country)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#2196f3;text-decoration:none;\">{p.get('product_title', '')}</a></td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('brand', '-')}</td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{price_range(p)}</td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;color:{'#1dbf73' if isinstance(p.get('rank_change'), int) and p.get('rank_change', 0) > 0 else '#888'};font-weight:600;'>{p.get('rank_change', '')}</td>"
-        f"<td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;color:{'#1dbf73' if p.get('demand_change', '').find('→') != -1 else '#888'};font-weight:600;'>{p.get('demand_change', '')}</td>"
-        f"</tr>"
-        for p in fastest_growing
-    ])
-    # temp_html 拼接
+
+    # 生成各部分HTML
+    brand_table_rows_html = ''.join([f"<tr><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{row['brand']}</td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{row['share']}</td></tr>" for row in brand_table_rows])
+    brand_table_html = f'<table style="width:100%;border-collapse:collapse;margin-bottom:2rem;"><thead><tr style="background:#f5f7fa;color:#222;font-size:1rem;"><th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th><th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Share</th></tr></thead><tbody>{brand_table_rows_html}</tbody></table>'
+    top_products_html = ''.join([f"<tr><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('rank', '')}</td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'><a href=\"{get_shopping_url(p.get('product_title', ''), args.country)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#2196f3;text-decoration:none;\">{p.get('product_title', '')}</a></td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('brand', '-')}</td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{price_range(p)}</td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('relative_demand_bucket', '')}</td></tr>" for p in top_products])
+    top_no_brand_products_html = ''.join([f"<tr><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('rank', '')}</td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'><a href=\"{get_shopping_url(p.get('product_title', ''), args.country)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#2196f3;text-decoration:none;\">{p.get('product_title', '')}</a></td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('brand', '-')}</td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{price_range(p)}</td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('relative_demand_bucket', '')}</td></tr>" for p in top_no_brand_products])
+    fastest_growing_html = ''.join([f"<tr><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('rank', '')}</td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('previous_rank', '')}</td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'><a href=\"{get_shopping_url(p.get('product_title', ''), args.country)}\" target=\"_blank\" rel=\"noopener noreferrer\" style=\"color:#2196f3;text-decoration:none;\">{p.get('product_title', '')}</a></td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{p.get('brand', '-')}</td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;'>{price_range(p)}</td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;color:{'#1dbf73' if isinstance(p.get('rank_change'), int) and p.get('rank_change', 0) > 0 else '#888'};font-weight:600;'>{p.get('rank_change', '')}</td><td style='padding:8px 12px;border-bottom:1px solid #e0e3e8;color:{'#1dbf73' if p.get('demand_change', '').find('→') != -1 else '#888'};font-weight:600;'>{p.get('demand_change', '')}</td></tr>" for p in fastest_growing])
+
+    # 准备用于AI分析的临时HTML
     temp_html = (
-        f'<div style="background:#f7f9fa;padding:40px 0 0 0;min-height:100vh;">'
-        f'<div style="max-width:900px;margin:0 auto;background:#fff;padding:32px 32px 48px 32px;border-radius:8px;box-shadow:0 2px 8px #0001;">'
-        f'<div style="text-align:center;margin-bottom:1.5rem;"><img src="https://www.ecompulsedata.com/logo-footer.png" alt="logo" style="height:48px;"></div>'
-        f'<h1 style="font-size:2.5rem;font-weight:700;text-align:center;color:#2a3b4d;margin-bottom:0.5rem;">E-Commerce Trend Report</h1>'
-        f'<div style="text-align:center;color:#444;font-size:1.1rem;margin-bottom:2.5rem;">{sub_header}</div>'
-        f'<h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Top Performing Products</h2>'
-        f'<table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">'
-        '<thead>'
-        '<tr style="background:#f5f7fa;color:#222;font-size:1rem;">'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Product</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Price</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Demand</th>'
-        '</tr>'
-        '</thead>'
-        f'<tbody>{top_products_html}</tbody>'
-        '</table>'
-        f'<h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Top Performing Products - no brand</h2>'
-        f'<table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">'
-        '<thead>'
-        '<tr style="background:#f5f7fa;color:#222;font-size:1rem;">'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Product</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Price</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Demand</th>'
-        '</tr>'
-        '</thead>'
-        f'<tbody>{top_no_brand_products_html}</tbody>'
-        '</table>'
-        f'<h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Fastest Growing Products</h2>'
-        f'<table style="width:100%;border-collapse:collapse;margin-bottom:2rem;">'
-        '<thead>'
-        '<tr style="background:#f5f7fa;color:#222;font-size:1rem;">'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Previous Rank</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Product</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Brand</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Price</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Rank Change</th>'
-        '<th style="padding:8px 12px;border-bottom:2px solid #e0e3e8;text-align:left;">Demand Change</th>'
-        '</tr>'
-        '</thead>'
-        f'<tbody>{fastest_growing_html}</tbody>'
-        '</table>'
-        f'<h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Brand Distribution</h2>'
-        f'{brand_table_html}'
-        f'<div style="text-align:center;color:#888;font-size:0.95rem;margin-top:2.5rem;">Data source : Google Merchant Center (GMC) {latest_date} &copy; ecompulsedata.com All rights reserved.</div>'
-        f'</div>'
-        f'</div>'
+        f'<h2 style="color:#2196f3;">Top Performing Products</h2>{top_products_html}'
+        f'<h2 style="color:#2196f3;">Top Performing Products - no brand</h2>{top_no_brand_products_html}'
+        f'<h2 style="color:#2196f3;">Fastest Growing Products</h2>{fastest_growing_html}'
+        f'<h2 style="color:#2196f3;">Brand Distribution</h2>{brand_table_html}'
     )
     data_text = extract_data_from_html(temp_html)
     print(f"  提取的数据长度: {len(data_text)} 字符")
     summary = call_gemini_api(data_text, args.country, args.keyword)
-    # 生成 summary_html 区块，避免 f-string 嵌套三引号
+
+    # AI总结HTML块
+    summary_html = ''
     if summary:
         summary_html = (
             '<div style="background:linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);color:#374151;padding:24px;border-radius:12px;margin-bottom:2.5rem;box-shadow:0 4px 12px rgba(0,0,0,0.1);border:1px solid #e5e7eb;">'
@@ -370,13 +279,12 @@ def main():
             '</h3>'
             f'<div style="line-height:1.8;font-size:1rem;color:#4b5563;text-align:justify;">{summary.replace(chr(10), "<br>")}</div>'
             '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #d1d5db;font-size:0.9rem;color:#6b7280;font-style:italic;">'
-            '💡 Generated based on Google Merchant Center data analysis'
+            f'💡 Generated based on Google Merchant Center data analysis {latest_date}'
             '</div>'
             '</div>'
         )
-    else:
-        summary_html = ''
-    # 生成最终的HTML（包含总结）
+
+    # 生成最终的、完整的HTML
     html = (
         '<div style="background:#f7f9fa;padding:40px 0 0 0;min-height:100vh;">'
         '<div style="max-width:900px;margin:0 auto;background:#fff;padding:32px 32px 48px 32px;border-radius:8px;box-shadow:0 2px 8px #0001;">'
@@ -427,20 +335,22 @@ def main():
         '</table>'
         '<h2 style="color:#2196f3;font-size:1.5rem;font-weight:700;margin-bottom:0.5rem;border-bottom:3px solid #2196f3;padding-bottom:0.2em;">Brand Distribution</h2>'
         f'{brand_table_html}'
-        '<div style="text-align:center;color:#888;font-size:0.95rem;margin-top:2.5rem;">Data source : Google Merchant Center (GMC) {latest_date} &copy; ecompulsedata.com All rights reserved.</div>'
+        f'<div style="text-align:center;color:#888;font-size:0.95rem;margin-top:2.5rem;">Data source : Google Merchant Center (GMC) {latest_date} &copy; ecompulsedata.com All rights reserved.</div>'
         '</div>'
         '</div>'
     )
-    # 保存 HTML
-    html_file_path = keyword_csv_path.parent / f"{args.country}_{safe_keyword}.analyzed.html"
+
+    # 保存 HTML 报告
+    html_file_path = report_dir / f"{args.country}_{safe_keyword}.analyzed.html"
     with open(html_file_path, 'w', encoding='utf-8') as f:
         f.write(html)
     print(f"已生成: {html_file_path}")
+
+    # 保存 AI 总结到文本文件
     if summary:
         print("  AI总结:")
         print(f"  {summary}")
-        # 保存总结到文件
-        summary_file_path = keyword_csv_path.parent / f"{args.country}_{safe_keyword}.summary.txt"
+        summary_file_path = report_dir / f"{args.country}_{safe_keyword}.summary.txt"
         with open(summary_file_path, 'w', encoding='utf-8') as f:
             f.write(f"数据来源: {args.country} - {args.keyword}\n")
             f.write(f"生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")

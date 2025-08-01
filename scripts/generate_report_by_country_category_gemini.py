@@ -599,7 +599,7 @@ def main():
                 '</h3>'
                 f'<div style="line-height:1.8;font-size:1rem;color:#4b5563;text-align:justify;">{summary.replace(chr(10), "<br>")}</div>'
                 '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #d1d5db;font-size:0.9rem;color:#6b7280;font-style:italic;">'
-                '💡 Generated based on Google Merchant Center data analysis'
+                f'💡 Generated based on Google Merchant Center data analysis  {latest_date}'
                 '</div>'
                 '</div>'
             )

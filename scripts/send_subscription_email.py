@@ -6,75 +6,86 @@ import requests
 import json
 
 def main():
-    # 解析命令行参数
-    parser = argparse.ArgumentParser(description='发送订阅邮件')
-    parser.add_argument('email', type=str, help='收件人邮箱')
-    parser.add_argument('categories', type=str, help='类目列表，如 US_1,US_1604,US_188')
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description='Send subscription email')
+    parser.add_argument('email', type=str, help='Recipient email address')
+    parser.add_argument('categories', type=str, help='List of categories, e.g., US_1,US_1604,US_toy accessories')
     args = parser.parse_args()
     
-    print("--- 开始运行 send_subscription_email.py ---")
-    print(f"收件人: {args.email}")
-    print(f"类目: {args.categories}")
+    print("--- Running send_subscription_email.py ---")
+    print(f"Recipient: {args.email}")
+    print(f"Categories: {args.categories}")
     
-    # 解析类目列表
+    # Parse the list of categories
     category_list = [cat.strip() for cat in args.categories.split(',') if cat.strip()]
-    print(f"解析的类目: {category_list}")
+    print(f"Parsed categories: {category_list}")
     
     html_parts = []
     
-    # 处理每个类目
+    # Process each category
     for cat in category_list:
-        parts = cat.split('_')
+        # MODIFICATION: Split only on the first underscore to correctly handle
+        # formats like "US_toy accessories".
+        parts = cat.split('_', 1)
         if len(parts) != 2:
-            print(f"跳过无效类目格式: {cat}")
+            print(f"Skipping invalid category format: {cat}")
             continue
         
-        country, category_id = parts
-        print(f"\n处理类目: {country}_{category_id}")
+        country = parts[0]
+        # The full category string 'cat' (e.g., "US_222" or "US_toy accessories")
+        # will be used as the base for the filename.
+        print(f"\nProcessing category: {cat}")
         
-        # 查找对应的HTML文件
+        # Find the corresponding HTML file
         output_root = Path(__file__).parent.parent / 'gmc_data' / 'output'
         report_dir = output_root / country / 'report'
-        html_file = report_dir / f"{country}_{category_id}.analyzed.html"
         
-        print(f"查找HTML文件: {html_file}")
-        print(f"文件存在: {html_file.exists()}")
+        # MODIFICATION: The filename is now based on the full category string 'cat'.
+        # This handles both "US_222.analyzed.html" and "US_toy accessories.analyzed.html".
+        # As per the request, if the format is keyword-based, it will now look for the
+        # corresponding .analyzed.html file instead of a .csv file to maintain
+        # the script's primary function of emailing HTML reports.
+        filename_base = cat.replace(' ', '_')
+        html_file = report_dir / f"{filename_base}.analyzed.html"
+        
+        print(f"Looking for HTML file: {html_file}")
+        print(f"File exists: {html_file.exists()}")
         
         if not html_file.exists():
-            print(f"HTML文件不存在: {html_file}")
+            print(f"HTML file not found: {html_file}")
             continue
         
         try:
-            # 读取HTML内容
+            # Read HTML content
             with open(html_file, 'r', encoding='utf-8') as f:
                 content = f.read()
             
-            # 提取主要内容（去掉外层div包装）
-            # 查找 <div style="background:#f7f9fa;padding:40px 0 0 0;min-height:100vh;"> 开始到 </div> 结束的内容
+            # Extract the main content (remove outer div wrapper)
+            # Find content from <div style="background:#f7f9fa;padding:40px 0 0 0;min-height:100vh;">
+            # to the matching </div>
             start_marker = '<div style="background:#f7f9fa;padding:40px 0 0 0;min-height:100vh;">'
             end_marker = '</div>'
             
             start_pos = content.find(start_marker)
             if start_pos != -1:
-                # 找到开始位置，查找对应的结束位置
                 start_pos += len(start_marker)
-                # 简单处理：找到最后一个 </div>
+                # Simple handling: find the last </div>
                 end_pos = content.rfind(end_marker)
                 if end_pos != -1:
                     content = content[start_pos:end_pos].strip()
             
             html_parts.append(f'<div style="margin-bottom:32px;">{content}</div>')
-            print(f"成功读取HTML内容，长度: {len(content)} 字符")
+            print(f"Successfully read HTML content, length: {len(content)} characters")
             
         except Exception as e:
-            print(f"读取HTML文件失败: {html_file}, 错误: {e}")
+            print(f"Failed to read HTML file: {html_file}, Error: {e}")
             continue
     
     if not html_parts:
-        print("错误: 没有找到任何HTML内容。")
+        print("Error: No HTML content was found.")
         return
     
-    # 拼接最终HTML
+    # Concatenate final HTML
     final_html = f'''
     <div style="font-family:Arial,sans-serif;">
       <h2></h2>
@@ -82,16 +93,16 @@ def main():
     </div>
     '''
     
-    print(f"\n生成的HTML内容长度: {len(final_html)} 字符")
+    print(f"\nGenerated HTML content length: {len(final_html)} characters")
     
-    # 使用Resend API发送邮件
+    # Send email using Resend API
     try:
         resend_api_key = os.getenv('RESEND_API_KEY')
         if not resend_api_key:
-            print("错误: 未设置 RESEND_API_KEY 环境变量")
+            print("Error: RESEND_API_KEY environment variable not set")
             return
         
-        # Resend API 请求
+        # Resend API request
         url = "https://api.resend.com/emails"
         headers = {
             "Authorization": f"Bearer {resend_api_key}",
@@ -101,7 +112,7 @@ def main():
         data = {
             "from": os.getenv('RESEND_FROM', 'noreply@ecompulsedata.com'),
             "to": [args.email],
-            "subject": "您的每周订阅报告-EcomPulseData",
+            "subject": "Your Weekly Subscription Report - EcomPulseData",
             "html": final_html
         }
         
@@ -109,15 +120,15 @@ def main():
         
         if response.status_code == 200:
             result = response.json()
-            print(f"邮件发送成功: {args.email}")
-            print(f"Resend 结果: {result}")
+            print(f"Email sent successfully to: {args.email}")
+            print(f"Resend result: {result}")
         else:
-            print(f"发送邮件失败: {response.status_code}")
-            print(f"错误信息: {response.text}")
+            print(f"Failed to send email: {response.status_code}")
+            print(f"Error message: {response.text}")
             
     except Exception as e:
-        print(f"发送邮件失败: {e}")
-        print("请检查 RESEND_API_KEY 环境变量")
+        print(f"Failed to send email: {e}")
+        print("Please check the RESEND_API_KEY environment variable.")
 
 if __name__ == "__main__":
-    main() 
+    main()
