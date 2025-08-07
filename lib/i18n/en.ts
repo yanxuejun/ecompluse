@@ -55,7 +55,8 @@ export const en = {
       minPrice: "Min Price",
       maxPrice: "Max Price",
       onlyNoBrand: "Only show no brand",
-      more: "More Filters"
+      more: "More Filters",
+      hide: "Hide Filters"
     },
     querying: "Querying...",
     query: "Query",

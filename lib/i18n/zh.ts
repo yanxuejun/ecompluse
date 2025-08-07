@@ -140,7 +140,8 @@ export const zh = {
       minPrice: "最低价格",
       maxPrice: "最高价格",
       onlyNoBrand: "只看无品牌",
-      more: "更多筛选"
+      more: "更多筛选",
+      hide: "收起筛选"
     },
     querying: "查询中...",
     query: "查询",
