@@ -61,11 +61,16 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
     }
   }, [country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice]);
 
+  // Этот useEffect будет запускаться только при изменении currentPage или pageSize
   useEffect(() => {
+    // Только если поиск уже был выполнен, то изменение страницы будет вызывать новый поиск
     if (hasQueried) {
       handleSearch(currentPage, pageSize);
     }
-  }, [currentPage, pageSize, hasQueried, handleSearch]);
+    // Мы намеренно не включаем handleSearch в зависимости, чтобы избежать автоматического поиска при изменении фильтров
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, pageSize]);
+
 
   // 新增：只有点击查询按钮时才查询
   // 点击查询按钮时，currentPage/pageSize 也要重置
@@ -98,18 +103,23 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
       }
       const newCredits = data.remainingCredits || (typeof credits === 'number' ? credits - 1 : credits);
       setCredits(newCredits);
+      
+      // 设置 hasQueried 为 true，并从第一页开始搜索
       setHasQueried(true);
+      setCurrentPage(1);
+      await handleSearch(1, pageSize);
+
       if (newCredits > 0) {
         alert(t.products.querySuccess + `\n\n${t.products.creditsDeducted} 1, ${t.products.currentCredits}: ${newCredits}`);
       } else {
         alert(t.products.querySuccess + `\n\n${t.products.creditsDeducted} 1, ${t.products.creditsUsedUp}`);
       }
-      setCurrentPage(1);
-      await handleSearch(1, pageSize);
     } catch (error) {
       alert(t.products.networkError);
     } finally {
-      setLoading(false);
+      // The loading state is already handled inside handleSearch, 
+      // but we keep it here as a fallback for the credit deduction part.
+      // setLoading(false) // handleSearch will set it to false
     }
   };
 
@@ -175,7 +185,7 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
           <span className="text-accent text-lg font-bold">{t.products.loading}</span>
         </div>
       )}
-      {!loading && (
+      {!loading && data.length > 0 && (
         <>
           <div className="bg-white rounded-lg shadow p-2 md:p-6 overflow-x-auto">
             <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
@@ -230,7 +240,7 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
               <span>
                 {t.products.page} {currentPage} / {totalPages}, {t.products.total} {total} {t.products.items}
               </span>
-              <button className="px-3 py-1 border rounded text-xs md:text-base disabled:opacity-50" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(currentPage + 1)}>
+              <button className="px-3 py-1 border rounded text-xs md:text-base disabled:opacity-50" disabled={currentPage >= totalPages || loading} onClick={() => setCurrentPage(currentPage + 1)}>
                 {t.products.nextPage}
               </button>
               <select className="border px-2 py-1 ml-4 w-full md:w-auto text-xs md:text-base" value={pageSize} onChange={e => handlePageSizeChange(Number(e.target.value))} disabled={loading}>
