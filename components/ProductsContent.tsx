@@ -173,12 +173,17 @@ export default function ProductsContent({ credits, setCredits, tier }: { credits
           placeholder={t.products.filters.category}
           className="w-full md:w-auto text-sm"
         />
-        {!showAdvanced && (
-          <button type="button" className="border px-2 py-1 rounded text-sm text-blue-600 hover:bg-blue-50" onClick={() => setShowAdvanced(true)}>
-            {t.products.filters.more || '更多筛选'}
-          </button>
-        )}
-        {showAdvanced && <>
+        <button
+          type="button"
+          className={`flex items-center gap-1 border px-3 py-1 rounded text-sm font-medium transition bg-blue-50 hover:bg-blue-100 text-blue-700 ${showAdvanced ? 'border-blue-400' : 'border-blue-200'}`}
+          onClick={() => setShowAdvanced(v => !v)}
+        >
+          {showAdvanced ? (t.products.filters.hide || '收起筛选') : (t.products.filters.more || '更多筛选')}
+          <span style={{fontSize: '1.1em'}}>{showAdvanced ? '∧' : '∨'}</span>
+        </button>
+      </div>
+      {showAdvanced && (
+        <div className="p-3 bg-gray-50 rounded border border-blue-100 mb-4 flex flex-wrap gap-2">
           <input placeholder={t.products.filters.brand} value={brand} onChange={e => setBrand(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
           <input
             type="date"
@@ -206,15 +211,15 @@ export default function ProductsContent({ credits, setCredits, tier }: { credits
             <input type="checkbox" checked={brandIsNull} onChange={e => setBrandIsNull(e.target.checked)} />
             {t.products.filters.onlyNoBrand}
           </label>
-        </>}
-        <button
+        </div>
+      )}
+      <button
           onClick={handleQueryWithCredits}
           className="bg-blue-600 text-white font-bold text-base md:text-lg px-6 py-2 md:px-8 md:py-3 rounded-lg shadow hover:bg-blue-700 transition md:w-auto"
           disabled={loading}
         >
           {loading ? t.products.querying : t.products.query}
         </button>
-      </div>
       {loading && (
         <div className="flex justify-center items-center my-8">
           <span className="animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-accent mr-4"></span>
