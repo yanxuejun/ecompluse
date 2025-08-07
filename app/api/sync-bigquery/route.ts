@@ -22,6 +22,8 @@ export async function GET(req: NextRequest) {
   const maxRelativeDemand = searchParams.get('maxRelativeDemand');
   const minPrevRelativeDemand = searchParams.get('minPrevRelativeDemand');
   const maxPrevRelativeDemand = searchParams.get('maxPrevRelativeDemand');
+  const minPreviousRank = searchParams.get('minPreviousRank');
+  const maxPreviousRank = searchParams.get('maxPreviousRank');
 
   // 构建WHERE条件
   let where = 'WHERE 1=1 ';
@@ -40,6 +42,8 @@ export async function GET(req: NextRequest) {
   if (maxRelativeDemand) where += ` AND relative_demand.max <= @maxRelativeDemand`;
   if (minPrevRelativeDemand) where += ` AND previous_relative_demand.min >= @minPrevRelativeDemand`;
   if (maxPrevRelativeDemand) where += ` AND previous_relative_demand.max <= @maxPrevRelativeDemand`;
+  if (minPreviousRank) where += ` AND previous_rank >= @minPreviousRank`;
+  if (maxPreviousRank) where += ` AND previous_rank <= @maxPreviousRank`;
 
   // 查询总数
   const countSql = `
@@ -133,6 +137,14 @@ export async function GET(req: NextRequest) {
   if (maxPrevRelativeDemand) {
     params.maxPrevRelativeDemand = Number(maxPrevRelativeDemand);
     types.maxPrevRelativeDemand = 'NUMERIC';
+  }
+  if (minPreviousRank) {
+    params.minPreviousRank = Number(minPreviousRank);
+    types.minPreviousRank = 'INT64';
+  }
+  if (maxPreviousRank) {
+    params.maxPreviousRank = Number(maxPreviousRank);
+    types.maxPreviousRank = 'INT64';
   }
 
   console.log('🔍 BigQuery Sync API - Count Query:');

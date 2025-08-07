@@ -27,6 +27,8 @@ export default function ProductsContent({ credits, setCredits, tier }: { credits
   const [maxRelativeDemand, setMaxRelativeDemand] = useState('');
   const [minPrevRelativeDemand, setMinPrevRelativeDemand] = useState('');
   const [maxPrevRelativeDemand, setMaxPrevRelativeDemand] = useState('');
+  const [minPreviousRank, setMinPreviousRank] = useState('');
+  const [maxPreviousRank, setMaxPreviousRank] = useState('');
   const [hasQueried, setHasQueried] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -56,6 +58,8 @@ export default function ProductsContent({ credits, setCredits, tier }: { credits
     if (maxRelativeDemand) params.append('maxRelativeDemand', maxRelativeDemand);
     if (minPrevRelativeDemand) params.append('minPrevRelativeDemand', minPrevRelativeDemand);
     if (maxPrevRelativeDemand) params.append('maxPrevRelativeDemand', maxPrevRelativeDemand);
+    if (minPreviousRank) params.append('minPreviousRank', minPreviousRank);
+    if (maxPreviousRank) params.append('maxPreviousRank', maxPreviousRank);
     params.append('page', String(page));
     params.append('pageSize', String(size));
     try {
@@ -72,7 +76,7 @@ export default function ProductsContent({ credits, setCredits, tier }: { credits
     } finally {
       setLoading(false);
     }
-  }, [country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice, minRelativeDemand, maxRelativeDemand, minPrevRelativeDemand, maxPrevRelativeDemand]);
+  }, [country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice, minRelativeDemand, maxRelativeDemand, minPrevRelativeDemand, maxPrevRelativeDemand, minPreviousRank, maxPreviousRank]);
 
   // Этот useEffect будет запускаться только при изменении currentPage или pageSize
   useEffect(() => {
@@ -207,6 +211,8 @@ export default function ProductsContent({ credits, setCredits, tier }: { credits
           <input placeholder="Relative Demand Max" type="number" value={maxRelativeDemand} onChange={e => setMaxRelativeDemand(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
           <input placeholder="Previous Relative Demand Min" type="number" value={minPrevRelativeDemand} onChange={e => setMinPrevRelativeDemand(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
           <input placeholder="Previous Relative Demand Max" type="number" value={maxPrevRelativeDemand} onChange={e => setMaxPrevRelativeDemand(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+          <input placeholder="Previous Rank Min" type="number" value={minPreviousRank} onChange={e => setMinPreviousRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+          <input placeholder="Previous Rank Max" type="number" value={maxPreviousRank} onChange={e => setMaxPreviousRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
           <label className="flex items-center gap-1 text-sm">
             <input type="checkbox" checked={brandIsNull} onChange={e => setBrandIsNull(e.target.checked)} />
             {t.products.filters.onlyNoBrand}
