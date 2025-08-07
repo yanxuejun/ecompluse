@@ -176,68 +176,69 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
         </div>
       )}
       {!loading && (
-        <div className="bg-white rounded-lg shadow p-2 md:p-6 overflow-x-auto">
-          <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
-              <thead className="sticky top-0 bg-white z-10">
-                <tr className="bg-background">
-                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rank}</th>
-                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.country}</th>
-                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.category}</th>
-                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.brand}</th>
-                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.productTitle}</th>
-                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRank}</th>
-                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.priceRange}</th>
-                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.relativeDemand}</th>
-                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRelativeDemand}</th>
-                  <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rankTimestamp}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((item) => {
-                  const countryCode = item.ranking_country;
-                  const { gl, hl } = countryGoogleShoppingMap[countryCode] || { gl: 'us', hl: 'en' };
-                  const productTitle = getTitle(item.product_title);
-                  const searchUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productTitle)}&gl=${gl}&hl=${hl}`;
-                  const key = item.rank_id || `${typeof item.rank_timestamp === 'string' ? item.rank_timestamp : item.rank_timestamp?.value}:${item.ranking_country}:${item.rank}:${item.ranking_category}:${productTitle}`;
-                  return (
-                    <tr key={key} className="bg-background rounded-lg shadow border-b border-gray-100">
-                      <td className="px-2 md:px-3 py-1 md:py-2 font-bold text-primary">{item.rank}</td>
-                      <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_country}</td>
-                      <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_category}</td>
-                      <td className="px-2 md:px-3 py-1 md:py-2">{item.brand}</td>
-                      <td className="px-2 md:px-3 py-1 md:py-2">
-                        <a href={searchUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                          {productTitle}
-                        </a>
-                      </td>
-                      <td className="px-2 md:px-3 py-1 md:py-2">{item.previous_rank ?? ''}</td>
-                      <td className="px-2 md:px-3 py-1 md:py-2">{getPriceRange(item.price_range)}</td>
-                      <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.relative_demand)}</td>
-                      <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.previous_relative_demand)}</td>
-                      <td className="px-2 md:px-3 py-1 md:py-2">{item.rank_timestamp?.value ? item.rank_timestamp.value.slice(0, 10) : (typeof item.rank_timestamp === 'string' ? item.rank_timestamp.slice(0, 10) : '')}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          {/* Pagination Controls with i18n */}
-          <div className="flex flex-col md:flex-row gap-2 md:gap-4 mt-4 items-center">
-            <button className="px-3 py-1 border rounded text-xs md:text-base disabled:opacity-50" disabled={currentPage === 1 || loading} onClick={() => setCurrentPage(currentPage - 1)}>
-              {t.products.prevPage}
-            </button>
-            <span>
-              {t.products.page} {currentPage} / {totalPages}, {t.products.total} {total} {t.products.items}
-            </span>
-            <button className="px-3 py-1 border rounded text-xs md:text-base disabled:opacity-50" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(currentPage + 1)}>
-              {t.products.nextPage}
-            </button>
-            <select className="border px-2 py-1 ml-4 w-full md:w-auto text-xs md:text-base" value={pageSize} onChange={e => handlePageSizeChange(Number(e.target.value))} disabled={loading}>
-              {[10, 20, 50, 100].map(size => (<option key={size} value={size}>{size} {t.products.itemsPerPage}</option>))}
-            </select>
-          </div>
-        </div>
+        <>
+          <div className="bg-white rounded-lg shadow p-2 md:p-6 overflow-x-auto">
+            <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
+                <thead className="sticky top-0 bg-white z-10">
+                  <tr className="bg-background">
+                    <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rank}</th>
+                    <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.country}</th>
+                    <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.category}</th>
+                    <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.brand}</th>
+                    <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.productTitle}</th>
+                    <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRank}</th>
+                    <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.priceRange}</th>
+                    <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.relativeDemand}</th>
+                    <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRelativeDemand}</th>
+                    <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rankTimestamp}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((item) => {
+                    const countryCode = item.ranking_country;
+                    const { gl, hl } = countryGoogleShoppingMap[countryCode] || { gl: 'us', hl: 'en' };
+                    const productTitle = getTitle(item.product_title);
+                    const searchUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productTitle)}&gl=${gl}&hl=${hl}`;
+                    const key = item.rank_id || `${typeof item.rank_timestamp === 'string' ? item.rank_timestamp : item.rank_timestamp?.value}:${item.ranking_country}:${item.rank}:${item.ranking_category}:${productTitle}`;
+                    return (
+                      <tr key={key} className="bg-background rounded-lg shadow border-b border-gray-100">
+                        <td className="px-2 md:px-3 py-1 md:py-2 font-bold text-primary">{item.rank}</td>
+                        <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_country}</td>
+                        <td className="px-2 md:px-3 py-1 md:py-2">{item.ranking_category}</td>
+                        <td className="px-2 md:px-3 py-1 md:py-2">{item.brand}</td>
+                        <td className="px-2 md:px-3 py-1 md:py-2">
+                          <a href={searchUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                            {productTitle}
+                          </a>
+                        </td>
+                        <td className="px-2 md:px-3 py-1 md:py-2">{item.previous_rank ?? ''}</td>
+                        <td className="px-2 md:px-3 py-1 md:py-2">{getPriceRange(item.price_range)}</td>
+                        <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.relative_demand)}</td>
+                        <td className="px-2 md:px-3 py-1 md:py-2">{getDemand(item.previous_relative_demand)}</td>
+                        <td className="px-2 md:px-3 py-1 md:py-2">{item.rank_timestamp?.value ? item.rank_timestamp.value.slice(0, 10) : (typeof item.rank_timestamp === 'string' ? item.rank_timestamp.slice(0, 10) : '')}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            {/* Pagination Controls with i18n */}
+            <div className="flex flex-col md:flex-row gap-2 md:gap-4 mt-4 items-center">
+              <button className="px-3 py-1 border rounded text-xs md:text-base disabled:opacity-50" disabled={currentPage === 1 || loading} onClick={() => setCurrentPage(currentPage - 1)}>
+                {t.products.prevPage}
+              </button>
+              <span>
+                {t.products.page} {currentPage} / {totalPages}, {t.products.total} {total} {t.products.items}
+              </span>
+              <button className="px-3 py-1 border rounded text-xs md:text-base disabled:opacity-50" disabled={currentPage >= totalPages} onClick={() => setCurrentPage(currentPage + 1)}>
+                {t.products.nextPage}
+              </button>
+              <select className="border px-2 py-1 ml-4 w-full md:w-auto text-xs md:text-base" value={pageSize} onChange={e => handlePageSizeChange(Number(e.target.value))} disabled={loading}>
+                {[10, 20, 50, 100].map(size => (<option key={size} value={size}>{size} {t.products.itemsPerPage}</option>))}
+              </select>
+            </div>
+        </>
       )}
     </div>
   );
-} 
+}
