@@ -5,21 +5,30 @@ import { useI18n } from '@/lib/i18n/context';
 import CountrySelect from "./ui/CountrySelect";
 import CategoryTreeSelect from "./ui/CategoryTreeSelect";
 
-export default function ProductsContent({ credits, setCredits }: { credits: number|null, setCredits: (n: number|null)=>void }) {
+export default function ProductsContent({ credits, setCredits, tier }: { credits: number|null, setCredits: (n: number|null)=>void, tier?: string }) {
   const { t, language } = useI18n();
   // Filter states
   const [country, setCountry] = useState('');
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [brand, setBrand] = useState('');
-  const [start, setStart] = useState('');
+  const [start, setStart] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 20);
+    return d.toISOString().slice(0, 10);
+  });
   const [end, setEnd] = useState('');
   const [brandIsNull, setBrandIsNull] = useState(false);
   const [minRank, setMinRank] = useState('');
   const [maxRank, setMaxRank] = useState('');
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
+  const [minRelativeDemand, setMinRelativeDemand] = useState('');
+  const [maxRelativeDemand, setMaxRelativeDemand] = useState('');
+  const [minPrevRelativeDemand, setMinPrevRelativeDemand] = useState('');
+  const [maxPrevRelativeDemand, setMaxPrevRelativeDemand] = useState('');
   const [hasQueried, setHasQueried] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // Data and UI states
   const [data, setData] = useState<any[]>([]);
@@ -43,6 +52,10 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
     if (maxRank) params.append('maxRank', maxRank);
     if (minPrice) params.append('minPrice', minPrice);
     if (maxPrice) params.append('maxPrice', maxPrice);
+    if (minRelativeDemand) params.append('minRelativeDemand', minRelativeDemand);
+    if (maxRelativeDemand) params.append('maxRelativeDemand', maxRelativeDemand);
+    if (minPrevRelativeDemand) params.append('minPrevRelativeDemand', minPrevRelativeDemand);
+    if (maxPrevRelativeDemand) params.append('maxPrevRelativeDemand', maxPrevRelativeDemand);
     params.append('page', String(page));
     params.append('pageSize', String(size));
     try {
@@ -59,7 +72,7 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
     } finally {
       setLoading(false);
     }
-  }, [country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice]);
+  }, [country, title, category, brand, start, end, brandIsNull, minRank, maxRank, minPrice, maxPrice, minRelativeDemand, maxRelativeDemand, minPrevRelativeDemand, maxPrevRelativeDemand]);
 
   // Этот useEffect будет запускаться только при изменении currentPage или pageSize
   useEffect(() => {
@@ -160,17 +173,40 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
           placeholder={t.products.filters.category}
           className="w-full md:w-auto text-sm"
         />
-        <input placeholder={t.products.filters.brand} value={brand} onChange={e => setBrand(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input type="date" value={start} onChange={e => setStart(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input type="date" value={end} onChange={e => setEnd(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
-        <input placeholder={t.products.filters.minRank} type="number" value={minRank} onChange={e => setMinRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <input placeholder={t.products.filters.maxRank} type="number" value={maxRank} onChange={e => setMaxRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <input placeholder={t.products.filters.minPrice} type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <input placeholder={t.products.filters.maxPrice} type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
-        <label className="flex items-center gap-1 text-sm">
-          <input type="checkbox" checked={brandIsNull} onChange={e => setBrandIsNull(e.target.checked)} />
-          {t.products.filters.onlyNoBrand}
-        </label>
+        {!showAdvanced && (
+          <button type="button" className="border px-2 py-1 rounded text-sm text-blue-600 hover:bg-blue-50" onClick={() => setShowAdvanced(true)}>
+            {t.products.filters.more || '更多筛选'}
+          </button>
+        )}
+        {showAdvanced && <>
+          <input placeholder={t.products.filters.brand} value={brand} onChange={e => setBrand(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+          <input
+            type="date"
+            value={start}
+            onChange={e => {
+              if (tier === 'free' || tier === 'starter') {
+                alert('仅Standard及以上用户可修改开始日期');
+                return;
+              }
+              setStart(e.target.value);
+            }}
+            className="border px-2 py-1 w-full md:w-auto text-sm"
+            min="1900-01-01"
+          />
+          <input type="date" value={end} onChange={e => setEnd(e.target.value)} className="border px-2 py-1 w-full md:w-auto text-sm" />
+          <input placeholder={t.products.filters.minRank} type="number" value={minRank} onChange={e => setMinRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+          <input placeholder={t.products.filters.maxRank} type="number" value={maxRank} onChange={e => setMaxRank(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+          <input placeholder={t.products.filters.minPrice} type="number" value={minPrice} onChange={e => setMinPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+          <input placeholder={t.products.filters.maxPrice} type="number" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+          <input placeholder="Relative Demand Min" type="number" value={minRelativeDemand} onChange={e => setMinRelativeDemand(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+          <input placeholder="Relative Demand Max" type="number" value={maxRelativeDemand} onChange={e => setMaxRelativeDemand(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+          <input placeholder="Previous Relative Demand Min" type="number" value={minPrevRelativeDemand} onChange={e => setMinPrevRelativeDemand(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+          <input placeholder="Previous Relative Demand Max" type="number" value={maxPrevRelativeDemand} onChange={e => setMaxPrevRelativeDemand(e.target.value)} className="border px-2 py-1 w-full md:w-24 text-sm" />
+          <label className="flex items-center gap-1 text-sm">
+            <input type="checkbox" checked={brandIsNull} onChange={e => setBrandIsNull(e.target.checked)} />
+            {t.products.filters.onlyNoBrand}
+          </label>
+        </>}
         <button
           onClick={handleQueryWithCredits}
           className="bg-blue-600 text-white font-bold text-base md:text-lg px-6 py-2 md:px-8 md:py-3 rounded-lg shadow hover:bg-blue-700 transition md:w-auto"

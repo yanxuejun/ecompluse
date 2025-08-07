@@ -18,13 +18,17 @@ export async function GET(req: NextRequest) {
   const maxPrice = searchParams.get('maxPrice');
   const page = Number(searchParams.get('page') || 1);
   const pageSize = Number(searchParams.get('pageSize') || 10);
+  const minRelativeDemand = searchParams.get('minRelativeDemand');
+  const maxRelativeDemand = searchParams.get('maxRelativeDemand');
+  const minPrevRelativeDemand = searchParams.get('minPrevRelativeDemand');
+  const maxPrevRelativeDemand = searchParams.get('maxPrevRelativeDemand');
 
   // 构建WHERE条件
   let where = 'WHERE 1=1 ';
   if (country) where += ` AND ranking_country = @country`;
   if (title) where += ` AND EXISTS (SELECT 1 FROM UNNEST(product_title) AS t WHERE LOWER(t.name) LIKE LOWER(@title))`;
   if (category) where += ` AND ranking_category = @category`;
-  if (brand) where += ` AND brand = @brand`;
+  if (brand) where += ` AND LOWER(brand) = LOWER(@brand)`;
   if (brandIsNull === 'true') where += ` AND (brand IS NULL OR brand = '')`;
   if (start) where += ` AND DATE(rank_timestamp) >= @start`;
   if (end) where += ` AND DATE(rank_timestamp) <= @end`;
@@ -32,6 +36,10 @@ export async function GET(req: NextRequest) {
   if (maxRank) where += ` AND rank <= @maxRank`;
   if (minPrice) where += ` AND price_range.min >= @minPrice`;
   if (maxPrice) where += ` AND price_range.max <= @maxPrice`;
+  if (minRelativeDemand) where += ` AND relative_demand.min >= @minRelativeDemand`;
+  if (maxRelativeDemand) where += ` AND relative_demand.max <= @maxRelativeDemand`;
+  if (minPrevRelativeDemand) where += ` AND previous_relative_demand.min >= @minPrevRelativeDemand`;
+  if (maxPrevRelativeDemand) where += ` AND previous_relative_demand.max <= @maxPrevRelativeDemand`;
 
   // 查询总数
   const countSql = `
@@ -109,6 +117,22 @@ export async function GET(req: NextRequest) {
   if (maxPrice) {
     params.maxPrice = Number(maxPrice);
     types.maxPrice = 'NUMERIC';
+  }
+  if (minRelativeDemand) {
+    params.minRelativeDemand = Number(minRelativeDemand);
+    types.minRelativeDemand = 'NUMERIC';
+  }
+  if (maxRelativeDemand) {
+    params.maxRelativeDemand = Number(maxRelativeDemand);
+    types.maxRelativeDemand = 'NUMERIC';
+  }
+  if (minPrevRelativeDemand) {
+    params.minPrevRelativeDemand = Number(minPrevRelativeDemand);
+    types.minPrevRelativeDemand = 'NUMERIC';
+  }
+  if (maxPrevRelativeDemand) {
+    params.maxPrevRelativeDemand = Number(maxPrevRelativeDemand);
+    types.maxPrevRelativeDemand = 'NUMERIC';
   }
 
   console.log('🔍 BigQuery Sync API - Count Query:');
