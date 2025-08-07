@@ -177,8 +177,7 @@ export default function ProductsContent({ credits, setCredits }: { credits: numb
       )}
       {!loading && (
         <div className="bg-white rounded-lg shadow p-2 md:p-6 overflow-x-auto">
-          <div className="overflow-auto max-h-[500px]">
-            <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
+          <table className="min-w-[900px] w-full border-separate border-spacing-y-2 text-xs md:text-base">
               <thead className="sticky top-0 bg-white z-10">
                 <tr className="bg-background">
                   <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rank}</th>
