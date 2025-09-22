@@ -39,9 +39,9 @@ export async function POST(req: NextRequest) {
     const orderBy = isFastest ? 'ORDER BY previous_rank - rank DESC' : 'ORDER BY rank ASC';
     const sql = `
         SELECT
-          rank_id, rank, product_title, ranking_category, ranking_country, rank_timestamp, previous_rank
-        FROM \`${projectId}.${datasetId}.BestSellers_TopProducts_479974220\`
-        WHERE ranking_country = @country AND ranking_category = @category
+          entity_id, rank, title, report_category_id, country_code, _PARTITIONDATE AS rank_timestamp, previous_rank
+        FROM \`${projectId}.${datasetId}.BestSellersProductClusterWeekly_479974220\`
+        WHERE country_code = @country AND report_category_id = @category
         ${orderBy}
         LIMIT @topN
       `;
@@ -67,19 +67,13 @@ export async function POST(req: NextRequest) {
           finalRankTimestamp = new Date().toISOString();
         }
         console.log("源表 rank_timestamp:", row.rank_timestamp, "插入表 rank_timestamp:", finalRankTimestamp);
-        const google = await searchGoogleImage(
-          Array.isArray(row.product_title) && row.product_title.length > 0
-            ? row.product_title[0].name
-            : String(row.product_title || "")
-        );
+        const google = await searchGoogleImage(String(row.title || ""));
         return {
-          rank_id: String(row.rank_id),
+          rank_id: String(row.entity_id),
           rank: Number(row.rank),
-          product_title: Array.isArray(row.product_title) && row.product_title.length > 0
-            ? String(row.product_title[0].name)
-            : "",
-          category_id: Number(row.ranking_category),
-          country: String(row.ranking_country),
+          product_title: String(row.title || ""),
+          category_id: Number(row.report_category_id),
+          country: String(row.country_code),
           image_url: google.image_url,
           search_link: google.search_link,
           search_title: google.search_title,

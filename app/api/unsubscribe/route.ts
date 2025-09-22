@@ -127,7 +127,10 @@ async function handleUnsubscribe(req: NextRequest): Promise<NextResponse> {
     }
     const credentials = JSON.parse(credentialsJson);
     const bigquery = new BigQuery({ credentials });
-    const projectId = process.env.GCP_PROJECT_ID || credentials.project_id;
+    const projectId = process.env.GCP_PROJECT_ID;
+    if (!projectId) {
+      return new NextResponse(errorHtml('服务器未配置 GCP_PROJECT_ID'), { status: 500, headers: { 'content-type': 'text/html; charset=utf-8' } });
+    }
     const datasetId = 'new_gmc_data';
     const tableId = 'weekly_email_subscriptions';
     const tableRef = `\`${projectId}.${datasetId}.${tableId}\``;
@@ -139,8 +142,11 @@ async function handleUnsubscribe(req: NextRequest): Promise<NextResponse> {
       params: { email: payload.email },
       types: { email: 'STRING' },
     });
+    if (!rows || rows.length === 0) {
+      return new NextResponse(errorHtml('未找到对应的订阅记录（邮箱不匹配）'), { status: 404, headers: { 'content-type': 'text/html; charset=utf-8' } });
+    }
 
-    const current = rows?.[0] || { categories: null as string | null, keywords: null as string | null };
+    const current = rows[0] as { categories: string | null; keywords: string | null };
     let categoriesStr = (current.categories as string | null) || '';
     let keywordsStr = (current.keywords as string | null) || '';
 
@@ -148,12 +154,14 @@ async function handleUnsubscribe(req: NextRequest): Promise<NextResponse> {
     const rest = underscoreIndex >= 0 ? payload.category.slice(underscoreIndex + 1) : '';
     const isNumeric = /^\d+$/.test(rest);
 
+    let changed = false;
     if (isNumeric) {
       // Remove from categories
       const list = categoriesStr
         ? categoriesStr.split(',').map(s => s.trim()).filter(Boolean)
         : [];
       const filtered = list.filter(s => s !== payload.category);
+      changed = filtered.length !== list.length;
       categoriesStr = filtered.join(',');
     } else {
       // Remove from keywords
@@ -161,7 +169,14 @@ async function handleUnsubscribe(req: NextRequest): Promise<NextResponse> {
         ? keywordsStr.split(',').map(s => s.trim()).filter(Boolean)
         : [];
       const filtered = list.filter(s => s !== payload.category);
+      changed = filtered.length !== list.length;
       keywordsStr = filtered.join(',');
+    }
+
+    if (!changed) {
+      const which = isNumeric ? '类目' : '关键词';
+      const msg = `${payload.email} 的 ${payload.category}（${which}）未在订阅中，或已退订，无需变更。`;
+      return new NextResponse(successHtml(msg), { status: 200, headers: { 'content-type': 'text/html; charset=utf-8' } });
     }
 
     const updateSql = `
@@ -169,7 +184,8 @@ async function handleUnsubscribe(req: NextRequest): Promise<NextResponse> {
       SET categories = @categories, keywords = @keywords, created_at = CURRENT_TIMESTAMP()
       WHERE email = @email
     `;
-    await bigquery.query({
+
+    const [job] = await bigquery.createQueryJob({
       query: updateSql,
       params: {
         email: payload.email,
@@ -181,7 +197,15 @@ async function handleUnsubscribe(req: NextRequest): Promise<NextResponse> {
         categories: 'STRING',
         keywords: 'STRING',
       },
+      location: 'US',
     });
+    await job.getQueryResults();
+    const [metadata] = await job.getMetadata();
+    // @ts-ignore - statistics.dmlStats may not be typed in all versions
+    const updatedCount = Number(metadata?.statistics?.dmlStats?.updatedRowCount || 0);
+    if (!updatedCount) {
+      return new NextResponse(errorHtml('未找到可更新的记录，可能邮箱不匹配或记录已被删除'), { status: 404, headers: { 'content-type': 'text/html; charset=utf-8' } });
+    }
 
     const which = isNumeric ? '类目' : '关键词';
     const msg = `${payload.email} 已成功退订 ${payload.category}（${which}）。`;

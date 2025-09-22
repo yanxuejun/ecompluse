@@ -20,8 +20,7 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
   const [total, setTotal] = useState(0);
   const [minRank, setMinRank] = useState('');
   const [maxRank, setMaxRank] = useState('');
-  const [minRelDemand, setMinRelDemand] = useState('');
-  const [maxRelDemand, setMaxRelDemand] = useState('');
+  // relative_demand 由范围变为字符串，去掉最小/最大需求过滤
   const [hasQueried, setHasQueried] = useState(false);
   const [productTitle, setProductTitle] = useState('');
 
@@ -43,8 +42,7 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
       if (maxPrice) params.append('maxPrice', maxPrice);
       if (minRank) params.append('minRank', minRank);
       if (maxRank) params.append('maxRank', maxRank);
-      if (minRelDemand) params.append('minRelDemand', minRelDemand);
-      if (maxRelDemand) params.append('maxRelDemand', maxRelDemand);
+      // 已移除 relative_demand 数值范围过滤
       if (productTitle) params.append('productTitle', productTitle);
       params.append('page', String(page));
       params.append('pageSize', String(size));
@@ -113,15 +111,9 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
   const totalPages = Math.ceil(total / pageSize) || 1;
 
   const getProductTitle = (row: any) => {
-    // 支持字符串、null、数组等多种情况
-    if (!row.product_title) return '-';
-    if (typeof row.product_title === 'string') return row.product_title || '-';
-    if (Array.isArray(row.product_title)) {
-      const zh = row.product_title.find((t: any) => t.locale === 'zh-CN');
-      const en = row.product_title.find((t: any) => t.locale === 'en');
-      return zh?.name || en?.name || row.product_title[0]?.name || '-';
-    }
-    return '-';
+    if (!row.title) return '-';
+    if (typeof row.title === 'string') return row.title || '-';
+    return String(row.title);
   };
 
   return (
@@ -153,8 +145,7 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
         <input className="border px-2 py-1 w-full md:w-24 text-sm" placeholder={language==='zh'?'最高价':'Max Price'} value={maxPrice} onChange={e=>setMaxPrice(e.target.value)} />
         <input className="border px-2 py-1 w-full md:w-20 text-sm" placeholder={language==='zh'?'最小排名':'Min Rank'} value={minRank} onChange={e=>setMinRank(e.target.value)} />
         <input className="border px-2 py-1 w-full md:w-20 text-sm" placeholder={language==='zh'?'最大排名':'Max Rank'} value={maxRank} onChange={e=>setMaxRank(e.target.value)} />
-        <input className="border px-2 py-1 w-full md:w-24 text-sm" placeholder={language==='zh'?'最小需求':'Min Rel. Demand'} value={minRelDemand} onChange={e=>setMinRelDemand(e.target.value)} />
-        <input className="border px-2 py-1 w-full md:w-24 text-sm" placeholder={language==='zh'?'最大需求':'Max Rel. Demand'} value={maxRelDemand} onChange={e=>setMaxRelDemand(e.target.value)} />
+        {/* relative_demand 改为字符串，暂不提供过滤输入 */}
         <button type="submit" className="bg-blue-600 text-white font-bold text-base md:text-lg px-6 py-2 md:px-8 md:py-3 rounded-lg shadow hover:bg-blue-700 transition md:w-auto">{language==='zh'?'查询':'Query'}</button>
       </form>
       {loading && (
@@ -177,20 +168,21 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
                 <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.previousRank}</th>
                 <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.priceRange}</th>
                 <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.relativeDemand}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">Rel. Demand Change</th>
                 <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rankTimestamp}</th>
               </tr>
             </thead>
             <tbody>
               {data.map((row, i) => {
-                const countryCode = row.ranking_country;
+                const countryCode = row.country_code;
                 const { gl, hl } = countryGoogleShoppingMap[countryCode] || { gl: 'us', hl: 'en' };
                 const productTitle = getProductTitle(row);
                 const searchUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(productTitle)}&gl=${gl}&hl=${hl}`;
                 return (
-                  <tr key={row.rank_id || i} className="bg-background rounded-lg shadow border-b border-gray-100">
+                  <tr key={row.entity_id || i} className="bg-background rounded-lg shadow border-b border-gray-100">
                     <td className="px-2 md:px-3 py-1 md:py-2 font-bold text-primary">{row.rank}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{row.ranking_country}</td>
-                    <td className="px-2 md:px-3 py-1 md:py-2">{row.ranking_category}</td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">{row.country_code}</td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">{row.report_category_id}</td>
                     <td className="px-2 md:px-3 py-1 md:py-2">{row.brand}</td>
                     <td className="px-2 md:px-3 py-1 md:py-2">
                       <a href={searchUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
@@ -200,6 +192,7 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
                     <td className="px-2 md:px-3 py-1 md:py-2">{row.previous_rank ?? ''}</td>
                     <td className="px-2 md:px-3 py-1 md:py-2">{row.price_range}</td>
                     <td className="px-2 md:px-3 py-1 md:py-2">{row.relative_demand}</td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">{row.relative_demand_change ?? ''}</td>
                     <td className="px-2 md:px-3 py-1 md:py-2">{row.rank_timestamp}</td>
                   </tr>
                 );

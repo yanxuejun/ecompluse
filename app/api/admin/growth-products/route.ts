@@ -7,7 +7,7 @@ const credentials = JSON.parse(credentialsJson);
 const bigquery = new BigQuery({ credentials });
 const projectId = process.env.GCP_PROJECT_ID!;
 const datasetId = 'new_gmc_data';
-const tableId = 'BestSellers_TopProducts_479974220';
+const tableId = 'BestSellersProductClusterWeekly_479974220';
 const tableRef = `
   \`${projectId}.${datasetId}.${tableId}\`
 `;
@@ -26,23 +26,24 @@ export async function GET(req: NextRequest) {
 
   let where = [];
   const params: any = {};
-  if (country) { where.push('ranking_country = @country'); params.country = country; }
-  if (category) { where.push('CAST(ranking_category AS STRING) = @category'); params.category = category; }
+  if (country) { where.push('country_code = @country'); params.country = country; }
+  if (category) { where.push('CAST(report_category_id AS STRING) = @category'); params.category = category; }
   if (brand) { where.push('brand = @brand'); params.brand = brand; }
   if (noBrand) { where.push('(brand IS NULL OR brand = "")'); }
-  if (minPrice) { where.push('price_range.min >= @minPrice'); params.minPrice = Number(minPrice); }
-  if (maxPrice) { where.push('price_range.max <= @maxPrice'); params.maxPrice = Number(maxPrice); }
+  if (minPrice) { where.push('price_range.min_amount_micros >= @minPrice'); params.minPrice = Number(minPrice); }
+  if (maxPrice) { where.push('price_range.max_amount_micros <= @maxPrice'); params.maxPrice = Number(maxPrice); }
   const minRank = searchParams.get('minRank') || '';
   const maxRank = searchParams.get('maxRank') || '';
   const minRelDemand = searchParams.get('minRelDemand') || '';
   const maxRelDemand = searchParams.get('maxRelDemand') || '';
   if (minRank) { where.push('rank >= @minRank'); params.minRank = Number(minRank); }
   if (maxRank) { where.push('rank <= @maxRank'); params.maxRank = Number(maxRank); }
-  if (minRelDemand) { where.push('relative_demand.min >= @minRelDemand'); params.minRelDemand = Number(minRelDemand); }
-  if (maxRelDemand) { where.push('relative_demand.max <= @maxRelDemand'); params.maxRelDemand = Number(maxRelDemand); }
+  // relative_demand 现为字符串字段，去掉 min/max 数值过滤，改为模糊匹配
+  if (minRelDemand) { where.push('LOWER(relative_demand) >= LOWER(@minRelDemand)'); params.minRelDemand = String(minRelDemand); }
+  if (maxRelDemand) { where.push('LOWER(relative_demand) <= LOWER(@maxRelDemand)'); params.maxRelDemand = String(maxRelDemand); }
   const productTitle = searchParams.get('productTitle') || '';
   if (productTitle) {
-    where.push('EXISTS (SELECT 1 FROM UNNEST(product_title) AS t WHERE LOWER(t.name) LIKE LOWER(@productTitle))');
+    where.push('LOWER(title) LIKE LOWER(@productTitle)');
     params.productTitle = `%${productTitle}%`;
   }
 
@@ -51,14 +52,16 @@ export async function GET(req: NextRequest) {
     SELECT
       rank,
       previous_rank,
-      ranking_country,
-      ranking_category,
-      rank_id,
-      product_title,
+      country_code,
+      report_category_id,
+      entity_id,
+      title,
       brand,
-      FORMAT('%s-%s %s', CAST(price_range.min AS STRING), CAST(price_range.max AS STRING), price_range.currency) AS price_range,
-      FORMAT('%s-%s %s', CAST(relative_demand.min AS STRING), CAST(relative_demand.max AS STRING), relative_demand.bucket) AS relative_demand,
-      FORMAT_DATE('%Y-%m-%d', DATE(rank_timestamp)) AS rank_timestamp
+      FORMAT('%s-%s %s', CAST(price_range.min_amount_micros AS STRING), CAST(price_range.max_amount_micros AS STRING), price_range.currency_code) AS price_range,
+      CAST(relative_demand AS STRING) AS relative_demand,
+      CAST(previous_relative_demand AS STRING) AS previous_relative_demand,
+      CAST(relative_demand_change AS STRING) AS relative_demand_change,
+      FORMAT_DATE('%Y-%m-%d', DATE(_PARTITIONDATE)) AS rank_timestamp
     FROM ${tableRef.trim()}
     ${whereClause}
     ORDER BY (previous_rank - rank) DESC
@@ -71,7 +74,11 @@ export async function GET(req: NextRequest) {
   const countQuery = `SELECT COUNT(1) as total FROM ${tableRef.trim()} ${whereClause}`;
 
   try {
+    console.log('[TopGrowthProducts] SQL:', query.trim());
+    console.log('[TopGrowthProducts] Params:', params);
     const [rows] = await bigquery.query({ query, params });
+    console.log('[TopGrowthProducts] COUNT SQL:', countQuery.trim());
+    console.log('[TopGrowthProducts] COUNT Params:', params);
     const [countRows] = await bigquery.query({ query: countQuery, params });
     const total = countRows[0]?.total || 0;
     return Response.json({ success: true, data: rows, total });
