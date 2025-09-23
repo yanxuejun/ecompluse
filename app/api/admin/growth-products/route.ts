@@ -7,10 +7,10 @@ const credentials = JSON.parse(credentialsJson);
 const bigquery = new BigQuery({ credentials });
 const projectId = process.env.GCP_PROJECT_ID!;
 const datasetId = 'new_gmc_data';
-const tableId = 'BestSellersProductClusterWeekly_479974220';
-const tableRef = `
-  \`${projectId}.${datasetId}.${tableId}\`
-`;
+function getTableRef(period?: string) {
+  const tableId = period === 'monthly' ? 'BestSellersProductClusterMonthly_479974220' : 'BestSellersProductClusterWeekly_479974220';
+  return `\`${projectId}.${datasetId}.${tableId}\``;
+}
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -20,10 +20,15 @@ export async function GET(req: NextRequest) {
   const noBrand = searchParams.get('noBrand') === 'true';
   const minPrice = searchParams.get('minPrice') || '';
   const maxPrice = searchParams.get('maxPrice') || '';
+  const startDate = searchParams.get('startDate') || '';
+  const endDate = searchParams.get('endDate') || '';
+  const relDemandChange = searchParams.get('relDemandChange') || '';
+  const period = searchParams.get('period') || 'weekly';
   const page = parseInt(searchParams.get('page') || '1', 10);
   const pageSize = parseInt(searchParams.get('pageSize') || '20', 10);
   const offset = (page - 1) * pageSize;
 
+  const tableRef = getTableRef(period);
   let where = [];
   const params: any = {};
   if (country) { where.push('country_code = @country'); params.country = country; }
@@ -46,6 +51,9 @@ export async function GET(req: NextRequest) {
     where.push('LOWER(title) LIKE LOWER(@productTitle)');
     params.productTitle = `%${productTitle}%`;
   }
+  if (startDate) { where.push('DATE(_PARTITIONDATE) >= DATE(@startDate)'); params.startDate = startDate; }
+  if (endDate) { where.push('DATE(_PARTITIONDATE) <= DATE(@endDate)'); params.endDate = endDate; }
+  if (relDemandChange) { where.push('relative_demand_change = @relDemandChange'); params.relDemandChange = relDemandChange; }
 
   const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
   const query = `
@@ -62,7 +70,7 @@ export async function GET(req: NextRequest) {
       CAST(previous_relative_demand AS STRING) AS previous_relative_demand,
       CAST(relative_demand_change AS STRING) AS relative_demand_change,
       FORMAT_DATE('%Y-%m-%d', DATE(_PARTITIONDATE)) AS rank_timestamp
-    FROM ${tableRef.trim()}
+    FROM ${tableRef}
     ${whereClause}
     ORDER BY (previous_rank - rank) DESC
     LIMIT @pageSize OFFSET @offset
@@ -71,7 +79,7 @@ export async function GET(req: NextRequest) {
   params.offset = offset;
 
   // 统计总数
-  const countQuery = `SELECT COUNT(1) as total FROM ${tableRef.trim()} ${whereClause}`;
+  const countQuery = `SELECT COUNT(1) as total FROM ${tableRef} ${whereClause}`;
 
   try {
     console.log('[TopGrowthProducts] SQL:', query.trim());

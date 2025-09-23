@@ -4,7 +4,7 @@ import { countryGoogleShoppingMap } from '@/lib/country-google-shopping';
 import CountrySelect from "@/components/ui/CountrySelect";
 import CategoryTreeSelect from "@/components/ui/CategoryTreeSelect";
 
-export default function TopGrowthProducts({ credits, setCredits }: { credits: number|null, setCredits: (n: number|null)=>void }) {
+export default function TopGrowthProducts({ credits, setCredits, period = 'weekly' }: { credits: number|null, setCredits: (n: number|null)=>void, period?: 'weekly'|'monthly' }) {
   const { t, language } = useI18n();
   const [country, setCountry] = useState('');
   const [category, setCategory] = useState('');
@@ -23,6 +23,9 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
   // relative_demand 由范围变为字符串，去掉最小/最大需求过滤
   const [hasQueried, setHasQueried] = useState(false);
   const [productTitle, setProductTitle] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [relDemandChange, setRelDemandChange] = useState('');
 
   useEffect(() => {
     if (hasQueried) {
@@ -44,6 +47,10 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
       if (maxRank) params.append('maxRank', maxRank);
       // 已移除 relative_demand 数值范围过滤
       if (productTitle) params.append('productTitle', productTitle);
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      if (relDemandChange) params.append('relDemandChange', relDemandChange);
+      if (period) params.append('period', period);
       params.append('page', String(page));
       params.append('pageSize', String(size));
       const res = await fetch(`/api/admin/growth-products?${params.toString()}`);
@@ -118,7 +125,7 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
 
   return (
     <div className="p-2 md:p-8">
-      <h2 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">{language==='zh'?'热门产品按增长排名':'Top Growth Products'}</h2>
+      <h2 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">{language==='zh'? (period==='weekly'?'热门产品按增长排名-周':'热门产品按增长排名-月') : (period==='weekly'?'Top Growth Products by Weekly':'Top Growth Products by Monthly')}</h2>
       <form className="flex flex-col md:flex-row flex-wrap gap-2 md:gap-4 mb-4" onSubmit={handleQueryWithCredits}>
         <CountrySelect
           value={country}
@@ -133,6 +140,20 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
           placeholder={language==='zh'?'类目':'Category'}
           className="w-full md:w-auto text-sm"
         />
+        <input
+          type="date"
+          className="border px-2 py-1 w-full md:w-auto text-sm"
+          placeholder={language==='zh'?'开始日期':'Start Date'}
+          value={startDate}
+          onChange={e=>setStartDate(e.target.value)}
+        />
+        <input
+          type="date"
+          className="border px-2 py-1 w-full md:w-auto text-sm"
+          placeholder={language==='zh'?'结束日期':'End Date'}
+          value={endDate}
+          onChange={e=>setEndDate(e.target.value)}
+        />
         <input className="border px-2 py-1 w-full md:w-auto text-sm" placeholder={language==='zh'?'品牌':'Brand'} value={brand} onChange={e=>setBrand(e.target.value)} />
         <label className="flex items-center gap-1 text-sm"><input type="checkbox" checked={noBrand} onChange={e=>setNoBrand(e.target.checked)} />{language==='zh'?'只看无品牌':'Only No Brand'}</label>
         <input
@@ -145,7 +166,17 @@ export default function TopGrowthProducts({ credits, setCredits }: { credits: nu
         <input className="border px-2 py-1 w-full md:w-24 text-sm" placeholder={language==='zh'?'最高价':'Max Price'} value={maxPrice} onChange={e=>setMaxPrice(e.target.value)} />
         <input className="border px-2 py-1 w-full md:w-20 text-sm" placeholder={language==='zh'?'最小排名':'Min Rank'} value={minRank} onChange={e=>setMinRank(e.target.value)} />
         <input className="border px-2 py-1 w-full md:w-20 text-sm" placeholder={language==='zh'?'最大排名':'Max Rank'} value={maxRank} onChange={e=>setMaxRank(e.target.value)} />
-        {/* relative_demand 改为字符串，暂不提供过滤输入 */}
+        <select 
+          className="border px-2 py-1 w-full md:w-auto text-sm" 
+          value={relDemandChange} 
+          onChange={e=>setRelDemandChange(e.target.value)}
+        >
+          <option value="">{language==='zh'?'需求变化':'Rel. Demand Change'}</option>
+          <option value="RISER">RISER</option>
+          <option value="FLAT">FLAT</option>
+          <option value="SINKER">SINKER</option>
+          <option value="UNKNOWN">UNKNOWN</option>
+        </select>
         <button type="submit" className="bg-blue-600 text-white font-bold text-base md:text-lg px-6 py-2 md:px-8 md:py-3 rounded-lg shadow hover:bg-blue-700 transition md:w-auto">{language==='zh'?'查询':'Query'}</button>
       </form>
       {loading && (

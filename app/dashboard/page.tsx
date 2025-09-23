@@ -13,7 +13,8 @@ import WeeklyEmailSubscription from '../../components/WeeklyEmailSubscription';
 const MENU_ITEMS = [
   { key: 'all', label: 'All Datas Query' },
   { key: 'hot', label: 'Hot Products by Category' },
-  { key: 'growth', label: 'Top Growth Products' },
+  { key: 'growth', label: 'Top Growth Products by Weekly' },
+  { key: 'growth_monthly', label: 'Top Growth Products by Monthly' },
   { key: 'subscribe', label: 'Weekly Email Subscription' },
 ];
 
@@ -179,7 +180,8 @@ export default function DashboardPage() {
             <div className="flex-1 bg-white rounded-lg shadow p-6 min-h-[400px] text-blue-900 ml-[-1px]">
               {selectedMenu === 'all' && <ProductsContent credits={credits} setCredits={setCredits} tier={tier} />}
               {selectedMenu === 'hot' && <ProductsExplorerContent credits={credits} setCredits={setCredits} />}
-              {selectedMenu === 'growth' && <TopGrowthProducts credits={credits} setCredits={setCredits} />}
+              {selectedMenu === 'growth' && <TopGrowthProducts credits={credits} setCredits={setCredits} period="weekly" />}
+              {selectedMenu === 'growth_monthly' && <TopGrowthProducts credits={credits} setCredits={setCredits} period="monthly" />}
               {selectedMenu === 'subscribe' && <WeeklyEmailSubscription />}
             </div>
           </div>
