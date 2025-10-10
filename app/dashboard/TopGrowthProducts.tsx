@@ -26,6 +26,7 @@ export default function TopGrowthProducts({ credits, setCredits, period = 'weekl
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [relDemandChange, setRelDemandChange] = useState('');
+  const [relativeDemand, setRelativeDemand] = useState('');
 
   useEffect(() => {
     if (hasQueried) {
@@ -50,6 +51,7 @@ export default function TopGrowthProducts({ credits, setCredits, period = 'weekl
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
       if (relDemandChange) params.append('relDemandChange', relDemandChange);
+      if (relativeDemand) params.append('relativeDemand', relativeDemand);
       if (period) params.append('period', period);
       params.append('page', String(page));
       params.append('pageSize', String(size));
@@ -166,6 +168,18 @@ export default function TopGrowthProducts({ credits, setCredits, period = 'weekl
         <input className="border px-2 py-1 w-full md:w-24 text-sm" placeholder={language==='zh'?'最高价':'Max Price'} value={maxPrice} onChange={e=>setMaxPrice(e.target.value)} />
         <input className="border px-2 py-1 w-full md:w-20 text-sm" placeholder={language==='zh'?'最小排名':'Min Rank'} value={minRank} onChange={e=>setMinRank(e.target.value)} />
         <input className="border px-2 py-1 w-full md:w-20 text-sm" placeholder={language==='zh'?'最大排名':'Max Rank'} value={maxRank} onChange={e=>setMaxRank(e.target.value)} />
+        <select 
+          className="border px-2 py-1 w-full md:w-auto text-sm" 
+          value={relativeDemand} 
+          onChange={e=>setRelativeDemand(e.target.value)}
+        >
+          <option value="">{language==='zh'?'相对需求':'Relative Demand'}</option>
+          <option value="VERY_LOW">VERY_LOW</option>
+          <option value="LOW">LOW</option>
+          <option value="MEDIUM">MEDIUM</option>
+          <option value="HIGH">HIGH</option>
+          <option value="VERY_HIGH">VERY_HIGH</option>
+        </select>
         <select 
           className="border px-2 py-1 w-full md:w-auto text-sm" 
           value={relDemandChange} 

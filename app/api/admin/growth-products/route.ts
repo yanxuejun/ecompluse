@@ -56,6 +56,7 @@ export async function GET(req: NextRequest) {
   const startDate = searchParams.get('startDate') || '';
   const endDate = searchParams.get('endDate') || '';
   const relDemandChange = searchParams.get('relDemandChange') || '';
+  const relativeDemand = searchParams.get('relativeDemand') || '';
   const period = searchParams.get('period') || 'weekly';
   const page = parseInt(searchParams.get('page') || '1', 10);
   const pageSize = parseInt(searchParams.get('pageSize') || '20', 10);
@@ -101,6 +102,7 @@ export async function GET(req: NextRequest) {
   if (startDate) { where.push('DATE(_PARTITIONDATE) >= DATE(@startDate)'); params.startDate = startDate; }
   if (endDate) { where.push('DATE(_PARTITIONDATE) <= DATE(@endDate)'); params.endDate = endDate; }
   if (relDemandChange) { where.push('relative_demand_change = @relDemandChange'); params.relDemandChange = relDemandChange; }
+  if (relativeDemand) { where.push('relative_demand = @relativeDemand'); params.relativeDemand = relativeDemand; }
 
   const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
   const query = `
