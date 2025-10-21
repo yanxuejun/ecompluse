@@ -8,6 +8,7 @@ import Footer from '../../components/Footer';
 import Navbar from '../../components/Navbar';
 import { useI18n } from '@/lib/i18n/context';
 import TopGrowthProducts from './TopGrowthProducts';
+import ProductFavorites from './ProductFavorites';
 import WeeklyEmailSubscription from '../../components/WeeklyEmailSubscription';
 
 const MENU_ITEMS = [
@@ -15,6 +16,7 @@ const MENU_ITEMS = [
   { key: 'hot', label: 'Hot Products by Category' },
   { key: 'growth', label: 'Top Growth Products by Weekly' },
   { key: 'growth_monthly', label: 'Top Growth Products by Monthly' },
+  { key: 'favorites', label: 'Product Favorites' },
   { key: 'subscribe', label: 'Weekly Email Subscription' },
 ];
 
@@ -182,6 +184,7 @@ export default function DashboardPage() {
               {selectedMenu === 'hot' && <ProductsExplorerContent credits={credits} setCredits={setCredits} />}
               {selectedMenu === 'growth' && <TopGrowthProducts credits={credits} setCredits={setCredits} period="weekly" />}
               {selectedMenu === 'growth_monthly' && <TopGrowthProducts credits={credits} setCredits={setCredits} period="monthly" />}
+              {selectedMenu === 'favorites' && <ProductFavorites />}
               {selectedMenu === 'subscribe' && <WeeklyEmailSubscription />}
             </div>
           </div>

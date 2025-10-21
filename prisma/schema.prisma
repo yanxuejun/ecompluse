@@ -10,7 +10,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -51,4 +51,26 @@ model UserProfile {
   tier      String   // 'starter' | 'standard' | 'premium'
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model ProductFavorites {
+  id              Int      @id @default(autoincrement())
+  userid          String   // Clerk userId
+  username        String   // User display name
+  useremail       String   // User email
+  rank            Int      // Product rank
+  country_code    String   // Country code
+  categroy_id     Int      // Category ID
+  brand           String   // Product brand
+  title           String   // Product title
+  previous_rank   Int?     // Previous rank
+  price_range     String?  // Price range
+  relative_demand String?  // Relative demand
+  relative_demand_change String? // Relative demand change
+  rank_timestamp  DateTime // Rank timestamp
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userid])
+  @@index([userid, rank])
 }

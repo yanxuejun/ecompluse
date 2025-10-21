@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useUser } from '@clerk/nextjs';
 import { useI18n } from '@/lib/i18n/context';
 import { countryGoogleShoppingMap } from '@/lib/country-google-shopping';
 import CountrySelect from "@/components/ui/CountrySelect";
 import CategoryTreeSelect from "@/components/ui/CategoryTreeSelect";
 
 export default function TopGrowthProducts({ credits, setCredits, period = 'weekly' }: { credits: number|null, setCredits: (n: number|null)=>void, period?: 'weekly'|'monthly' }) {
+  const { user } = useUser();
   const { t, language } = useI18n();
   const [country, setCountry] = useState('');
   const [category, setCategory] = useState('');
@@ -125,6 +127,49 @@ export default function TopGrowthProducts({ credits, setCredits, period = 'weekl
     return String(row.title);
   };
 
+  async function addToFavorites(row: any) {
+    if (!user?.id) {
+      alert(language === 'zh' ? '请先登录' : 'Please login first');
+      return;
+    }
+
+    try {
+      const favoriteData = {
+        rank: row.rank,
+        country_code: row.country_code,
+        categroy_id: row.report_category_id,
+        brand: row.brand || '',
+        title: getProductTitle(row),
+        previous_rank: row.previous_rank,
+        price_range: row.price_range || '',
+        relative_demand: row.relative_demand || '',
+        relative_demand_change: row.relative_demand_change || '',
+        rank_timestamp: row.rank_timestamp,
+        username: user?.username || user?.firstName || user?.fullName || 'Unknown',
+        useremail: user?.emailAddresses?.[0]?.emailAddress || '',
+      };
+
+      const res = await fetch('/api/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(favoriteData),
+      });
+
+      const json = await res.json();
+      
+      if (res.ok && json.success) {
+        alert(language === 'zh' ? '已添加到收藏' : 'Added to favorites');
+      } else {
+        alert(json.error || (language === 'zh' ? '添加失败' : 'Failed to add to favorites'));
+      }
+    } catch (error) {
+      console.error('Error adding to favorites:', error);
+      alert(language === 'zh' ? '网络错误' : 'Network error');
+    }
+  }
+
   return (
     <div className="p-2 md:p-8">
       <h2 className="text-xl md:text-2xl font-bold mb-2 md:mb-4">{language==='zh'? (period==='weekly'?'热门产品按增长排名-周':'热门产品按增长排名-月') : (period==='weekly'?'Top Growth Products by Weekly':'Top Growth Products by Monthly')}</h2>
@@ -215,6 +260,7 @@ export default function TopGrowthProducts({ credits, setCredits, period = 'weekl
                 <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.relativeDemand}</th>
                 <th className="px-2 md:px-3 py-1 md:py-2 text-left">Rel. Demand Change</th>
                 <th className="px-2 md:px-3 py-1 md:py-2 text-left">{t.products.table.rankTimestamp}</th>
+                <th className="px-2 md:px-3 py-1 md:py-2 text-left">{language === 'zh' ? '收藏' : 'Favorite'}</th>
               </tr>
             </thead>
             <tbody>
@@ -239,6 +285,15 @@ export default function TopGrowthProducts({ credits, setCredits, period = 'weekl
                     <td className="px-2 md:px-3 py-1 md:py-2">{row.relative_demand}</td>
                     <td className="px-2 md:px-3 py-1 md:py-2">{row.relative_demand_change ?? ''}</td>
                     <td className="px-2 md:px-3 py-1 md:py-2">{row.rank_timestamp}</td>
+                    <td className="px-2 md:px-3 py-1 md:py-2">
+                      <button
+                        onClick={() => addToFavorites(row)}
+                        className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition"
+                        title={language === 'zh' ? '添加到收藏' : 'Add to favorites'}
+                      >
+                        {language === 'zh' ? '收藏' : '★'}
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
