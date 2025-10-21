@@ -14,7 +14,7 @@ const tableRef = `\`${projectId}.${datasetId}.${tableId}\``;
 // DELETE /api/favorites/[id] - Remove a product from favorites
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -23,7 +23,8 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const favoriteId = parseInt(params.id);
+    const { id } = await params;
+    const favoriteId = parseInt(id);
     
     if (isNaN(favoriteId)) {
       return NextResponse.json(
