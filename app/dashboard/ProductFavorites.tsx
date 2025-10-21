@@ -47,7 +47,7 @@ export default function ProductFavorites() {
     setLoading(false);
   }
 
-  async function removeFavorite(id: number) {
+  async function removeFavorite(id: string) {
     if (!window.confirm(language === 'zh' ? '确定要删除这个收藏吗？' : 'Are you sure you want to remove this favorite?')) {
       return;
     }

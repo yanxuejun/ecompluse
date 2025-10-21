@@ -11,33 +11,38 @@ const datasetId = 'new_gmc_data';
 const tableId = 'Product_Favorites';
 const tableRef = `\`${projectId}.${datasetId}.${tableId}\``;
 
-// DELETE /api/favorites/[id] - Remove a product from favorites
+// DELETE /api/favorites/[id] - Soft-remove a product from favorites by setting status to 0
 export async function DELETE(
+  
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+
+  console.log("DELETE /api/favorites/[id]")
   try {
     const { userId } = await auth();
-    
+ 
     if (!userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
-    const favoriteId = parseInt(id);
-    
-    if (isNaN(favoriteId)) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid favorite ID' },
-        { status: 400 }
-      );
-    }
+    const favoriteId = id;
+    console.log(favoriteId)
 
-    // 检查收藏是否属于该用户
+ 
+
+    // 检查收藏是否属于该用户且状态不为0（未被软删除）
     const checkQuery = `
       SELECT id FROM ${tableRef}
-      WHERE id = @id AND userid = @userid
+      WHERE id = @id AND userid = @userid AND status != 'Delete'
     `;
+
+    console.log('软删除收藏 - 检查权限SQL:', checkQuery);
+    console.log('软删除收藏 - 检查权限参数:', {
+      id: favoriteId,
+      userid: userId
+    });
 
     const [checkRows] = await bigquery.query({
       query: checkQuery,
@@ -46,44 +51,51 @@ export async function DELETE(
         userid: userId
       },
       types: {
-        id: 'INT64',
+        id: 'STRING',
         userid: 'STRING'
       }
     });
 
     if (checkRows.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'Favorite not found or not authorized' },
+        { success: false, error: 'Favorite not found, already removed, or not authorized' },
         { status: 404 }
       );
     }
 
-    // 删除收藏
-    const deleteQuery = `
-      DELETE FROM ${tableRef}
+    //修改为 UPDATE 语句以实现软删除 (Soft Delete) 
+    const updateQuery = `
+      UPDATE ${tableRef}
+      SET status = 'Delete'
       WHERE id = @id AND userid = @userid
     `;
 
+    console.log('软删除收藏 - UPDATE SQL:', updateQuery);
+    console.log('软删除收藏 - UPDATE 参数:', {
+      id: favoriteId,
+      userid: userId
+    });
+
     await bigquery.query({
-      query: deleteQuery,
+      query: updateQuery,
       params: {
         id: favoriteId,
         userid: userId
       },
       types: {
-        id: 'INT64',
+        id: 'STRING',
         userid: 'STRING'
       }
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Favorite removed successfully',
+      message: 'Favorite successfully soft-removed (status set to 0)',
     });
   } catch (error) {
-    console.error('Error removing favorite:', error);
+    console.error('Error soft-removing favorite:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to remove favorite' },
+      { success: false, error: 'Failed to soft-remove favorite' },
       { status: 500 }
     );
   }
